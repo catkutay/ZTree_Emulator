@@ -1,0 +1,19 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{extend 'layout.html'}}
+<h2>Results Table</h2>
+<table style="width: 600px; border: 1px solid black;">
+<tr style="background-color: #99CC33; color: black;">
+
+<td>Exp ID</td><td>Stage</td><td>Round</td><td>Participant</td><td>Value</td></tr>
+{{for res in results:}}
+<tr><td>{{=res.experiment_id}}</td><td>{{=res.stage_id}}</td><td>{{=res.round_id}}</td><td>{{=res.participant_id}}</td><td>{{=res.valueString}}</td></tr>
+{{pass}}
+</table>
+
+
+<div id="rightContent">
+
+{{if 'message' in globals():}}
+<h3>{{=message}}</h3>
+{{pass}}
+</div>

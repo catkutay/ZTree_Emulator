@@ -1,0 +1,383 @@
+timestamp: 2016-01-22T12:13:19.585351
+CREATE TABLE auth_user(
+    id INT AUTO_INCREMENT NOT NULL,
+    first_name VARCHAR(128),
+    last_name VARCHAR(128),
+    email VARCHAR(512),
+    password VARCHAR(512),
+    registration_key VARCHAR(512),
+    reset_password_key VARCHAR(512),
+    registration_id VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.588342
+CREATE TABLE auth_group(
+    id INT AUTO_INCREMENT NOT NULL,
+    role VARCHAR(512),
+    description LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.591779
+CREATE TABLE auth_membership(
+    id INT AUTO_INCREMENT NOT NULL,
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.595864
+CREATE TABLE auth_permission(
+    id INT AUTO_INCREMENT NOT NULL,
+    group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    name VARCHAR(512),
+    table_name VARCHAR(512),
+    record_id INT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.602761
+CREATE TABLE auth_event(
+    id INT AUTO_INCREMENT NOT NULL,
+    time_stamp DATETIME,
+    client_ip VARCHAR(512),
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    origin VARCHAR(512),
+    description LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.606816
+CREATE TABLE auth_cas(
+    id INT AUTO_INCREMENT NOT NULL,
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    created_on DATETIME,
+    service VARCHAR(512),
+    ticket VARCHAR(512),
+    renew CHAR(1),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.614219
+CREATE TABLE wiki_page(
+    id INT AUTO_INCREMENT NOT NULL,
+    slug VARCHAR(512),
+    title VARCHAR(255) UNIQUE,
+    body LONGTEXT NOT NULL,
+    tags LONGTEXT,
+    can_read LONGTEXT,
+    can_edit LONGTEXT,
+    changelog VARCHAR(512),
+    html LONGTEXT,
+    render VARCHAR(512),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.622484
+CREATE TABLE wiki_tag(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    wiki_page INT, INDEX wiki_page__idx (wiki_page), FOREIGN KEY (wiki_page) REFERENCES wiki_page (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.631390
+CREATE TABLE wiki_media(
+    id INT AUTO_INCREMENT NOT NULL,
+    wiki_page INT, INDEX wiki_page__idx (wiki_page), FOREIGN KEY (wiki_page) REFERENCES wiki_page (id) ON DELETE CASCADE,
+    title VARCHAR(512),
+    filename VARCHAR(512),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.752878
+CREATE TABLE Events(
+    id INT AUTO_INCREMENT NOT NULL,
+    experiment_id INT,
+    event_number INT,
+    typeEvent VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.755171
+CREATE TABLE Experiment(
+    id INT AUTO_INCREMENT NOT NULL,
+    title VARCHAR(512),
+    typeExperiment VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.757861
+CREATE TABLE Participant(
+    id INT AUTO_INCREMENT NOT NULL,
+    IP VARCHAR(512),
+    Model_name VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.762370
+CREATE TABLE Results(
+    id INT AUTO_INCREMENT NOT NULL,
+    Experiment_id INT,
+    Participant_id INT,
+    Round_id INT,
+    name VARCHAR(512),
+    valueString VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:13:19.766391
+CREATE TABLE Setup(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    valueString VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-22T12:39:47.458824
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512),
+    registration_id CHAR(512)
+);
+success!
+timestamp: 2016-01-22T12:39:47.463397
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2016-01-22T12:39:47.467583
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2016-01-22T12:39:47.475279
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2016-01-22T12:39:47.480011
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2016-01-22T12:39:47.485214
+CREATE TABLE auth_cas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    service CHAR(512),
+    ticket CHAR(512),
+    renew CHAR(1)
+);
+success!
+timestamp: 2016-01-22T12:39:47.501955
+CREATE TABLE wiki_page(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug CHAR(512),
+    title CHAR(255) UNIQUE,
+    body TEXT NOT NULL,
+    tags TEXT,
+    can_read TEXT,
+    can_edit TEXT,
+    changelog CHAR(512),
+    html TEXT,
+    render CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2016-01-22T12:39:47.517686
+CREATE TABLE wiki_tag(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    wiki_page INTEGER REFERENCES wiki_page (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2016-01-22T12:39:47.528231
+CREATE TABLE wiki_media(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    wiki_page INTEGER REFERENCES wiki_page (id) ON DELETE CASCADE,
+    title CHAR(512),
+    filename CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2016-01-22T12:39:47.723411
+CREATE TABLE Events(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    experiment_id INTEGER,
+    event_number INTEGER,
+    typeEvent CHAR(512)
+);
+success!
+timestamp: 2016-01-22T12:39:47.728695
+CREATE TABLE Experiment(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title CHAR(512),
+    typeExperiment CHAR(512)
+);
+success!
+timestamp: 2016-01-22T12:39:47.739330
+CREATE TABLE Participant(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    IP CHAR(512),
+    Model_name CHAR(512)
+);
+success!
+timestamp: 2016-01-22T12:39:47.749700
+CREATE TABLE Results(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Experiment_id INTEGER,
+    Participant_id INTEGER,
+    Round_id INTEGER,
+    name CHAR(512),
+    valueString CHAR(512)
+);
+success!
+timestamp: 2016-01-22T12:39:47.757817
+CREATE TABLE Setup(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    valueString CHAR(512)
+);
+success!
+timestamp: 2016-01-25T14:47:11.686378
+CREATE TABLE setupExperiment(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    valueString VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-27T09:06:12.037214
+CREATE TABLE events(
+    id INT AUTO_INCREMENT NOT NULL,
+    experiment_id INT,
+    event_number INT,
+    typeEvent VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-27T09:06:12.038472
+CREATE TABLE experiment(
+    id INT AUTO_INCREMENT NOT NULL,
+    title VARCHAR(512) UNIQUE,
+    typeExperiment VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-27T09:06:12.039307
+CREATE TABLE participant(
+    id INT AUTO_INCREMENT NOT NULL,
+    IP VARCHAR(512),
+    Model_name VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-27T09:06:12.040510
+CREATE TABLE results(
+    id INT AUTO_INCREMENT NOT NULL,
+    Experiment_id INT,
+    Participant_id INT,
+    Round_id INT,
+    name VARCHAR(512),
+    valueString VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-27T17:10:27.000690
+ALTER TABLE setupExperiment ADD experiment_id INT;
+faked!
+success!
+timestamp: 2016-01-28T15:19:38.593009
+CREATE TABLE stages(
+    id INT AUTO_INCREMENT NOT NULL,
+    experiment_id INT,
+    event_number INT,
+    type_stage VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-01-28T17:00:23.201712
+ALTER TABLE stages ADD stage_number INT;
+faked!
+timestamp: 2016-01-28T17:00:23.203542
+ALTER TABLE stages DROP COLUMN event_number;
+faked!
+timestamp: 2016-01-29T10:31:15.866572
+ALTER TABLE experiment ADD rounds INT;
+timestamp: 2016-01-29T10:32:22.187528
+ALTER TABLE experiment ADD rounds INT;
+faked!
+success!
+timestamp: 2016-01-29T10:32:22.190673
+ALTER TABLE results ADD stage_id INT;
+faked!
+success!
+timestamp: 2016-02-02T10:22:45.945122
+CREATE TABLE experiment_participant(
+    id INT AUTO_INCREMENT NOT NULL,
+    experiment_id INT,
+    participant_id INT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+timestamp: 2016-02-02T10:22:45.966261
+CREATE TABLE experiment_participant(
+    id INT AUTO_INCREMENT NOT NULL,
+    experiment_id INT,
+    participant_id INT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+faked!
+timestamp: 2016-02-10T21:24:32.449546
+ALTER TABLE stages ADD message VARCHAR(512);
+faked!
+success!

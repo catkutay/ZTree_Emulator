@@ -1,0 +1,14 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{extend 'layout.html'}}
+
+
+<div id="rightContent">
+
+{{if 'message' in globals():}}
+<h3>{{=message}}</h3>
+{{pass}}
+{{=pages}}
+
+</div>
+
+  {{include "experiments/results.html"}}

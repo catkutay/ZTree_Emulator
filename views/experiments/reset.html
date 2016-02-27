@@ -1,0 +1,23 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{extend 'layout.html'}}
+
+{{if 'message' in globals():}}
+<h3>{{=message}}</h3>
+{{pass}}
+{{if delete:}}
+<h2> Results deleted </h2>
+{{else:}}
+<h2> This will clear all the participant data and results for this experiment</h2>
+{{if start:}}
+{{=form}}
+{{else:}}
+<h3>Do you really want to delete data from this experiment</h3>
+<p>
+Title: {{=Title}}
+</p><p>
+Type: {{=ExperimentType}}
+</p>
+{{=form}}
+{{pass}}
+{{pass}}
+
