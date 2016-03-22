@@ -68,6 +68,10 @@ div.error { background-color: red; color: white; padding: 3px; }
      <h2 class="title">
      Experiments data 
      </h2>
+Number,   Title<br>
+{{for experiment in experiments:}}
+<a href="{{=URL(c="experiments",f="results",vars=dict(experiment_id=experiment.id,name="Results"))}}">{{=experiment.id}}. {{=experiment.title}}</a><br>
+{{pass}}
 	</div>
     <div class="col2">
      <h2 class="title">

@@ -97,6 +97,8 @@ db.define_table('results',Field('experiment_id','integer'),Field('participant_id
 db.define_table('setupExperiment',Field ('experiment_id','integer'),Field('name','string'),Field('valueString','string'))
 ## after defining tables, uncomment below to enable auditing
 
+experiments=db(db.experiment.id>0).select()
+
 # auth.enable_record_versioning(db)
 import logging
 logger = logging.getLogger("web2py.app.myapp")
