@@ -329,7 +329,6 @@ def get_round():
 		round_id=1
 	returnvar=dict([("round_id",round_id)])
         return gluon.contrib.simplejson.dumps(returnvar)
-
     else: 
 	return "Unknown experiment"
 
