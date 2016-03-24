@@ -19,6 +19,7 @@ def index():
     """
     return auth.wiki()
 
+
 def help():
     return auth.wiki('help')
 

@@ -1,0 +1,407 @@
+(dp1
+S'output'
+p2
+S"<type 'exceptions.TypeError'> 'NoneType' object has no attribute '__getitem__'"
+p3
+sS'layer'
+p4
+S'/usr/local/web2py/applications/ZTree/controllers/experiments.py'
+p5
+sS'code'
+p6
+S'# -*- coding: utf-8 -*-\n# this file is released under public domain and you can use without limitations\n\n#########################################################################\n## This is a sample controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n## - api is an example of Hypermedia API support and access control\n#########################################################################\nimport gluon.contrib.simplejson\n\n\ndef index():\n    """\n    example action using the internationalization operator T and flash\n    rendered by views/default/index.html or views/generic.html\n\n    if you need a simple wiki simply replace the two lines below with:\n    return auth.wiki()\n    """\n    return dict(pages=auth.wiki(\'help\'))\n\ndef display_results():\n    form = FORM(TABLE(TR(\'Experiment ID:\',\n              INPUT(_name=\'experiment_id\', requires=IS_NOT_EMPTY())),\n\t     TR(\'Stage Number (optional)\', INPUT(_name=\'stage_number\' )),\n\t\tTR(\'Round ID\',INPUT(_name=\'round_id\')),\n\t\tTR(INPUT(_name=\'name\',_value="Results",_type="hidden")),\n              TR("",INPUT(_type=\'submit\'))))\n    if form.process().accepted:\n        session.flash = \'form accepted\'\n        redirect(URL(f=\'results\',vars=request.vars))\n    elif form.errors:\n        response.flash = \'form has errors\'\n    else:\n        response.flash = \'please fill the form\'\n    return dict(form=form)\n\n\ndef help():\n\n    return auth.wiki(\'help\')\n\ndef participant():\n    if (request.vars):\n        value=request.vars\n        variable=value.keys()\n\tparticipant=None\n\n        #check what order put in - exp_id set and variableData is being reviewd\n        if (variable[0]=="experiment_id"):\n                participant=variable[1]\n                exp_id=value[variable[0]]\n\n\telse:\n            try:\n                participant=variable[0]\n                exp_id=value[variable[1]]\n            except:\n                return " You need to provide experiment id"\n        ip = request.client\n        part=db.participant((db.participant.IP==ip))\n        ##check to see if cna fit in experiment\n        max_participants=db.setupExperiment((db.setupExperiment.name=="max_participants")&(db.setupExperiment.experiment_id==exp_id))[\'valueString\']\n        parts=db(db.experiment_participant.experiment_id==exp_id)\n\t#eresetting to zero\n\tif value["participant"]=="-1":\n                parts.delete()\n                        ##reset participant to zero and return values\n                ret=db.setupExperiment((db.setupExperiment.name=="participant") & (db.setupExperiment.experiment_id==exp_id))\n                ret.update_record(valueString=0)\n                db.commit()\n\t\treturn "Start New Group as Host Server"\n\t#expereiment not fulli add expereimenter\n\telif value["participant"]=="0":\n\t\treturnvar= dict([("message","experimenter"),("participant","0"),("experimental_id",exp_id),("participant_id","0")])\n\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\n\telif ((parts.count())<max_participants):\n                if (part==None):\n                        part_id=db.participant.insert(IP=ip,model_name="default")\n\n                else:\n                        part_id=part[\'id\']\n\telse:\n\t\treturnvar= dict([("message","full"),("participant","-1"),("experimental_id",exp_id),("participant_id","-1")])\n\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\n\n\t#setup participatn in experiment as there is room\n\tdb.experiment_participant.insert(experiment_id=exp_id,participant_id=part_id)\n        db.commit()\n\t#get exisitng setup data\n        ret=db.setupExperiment((db.setupExperiment.name=="participant") & (db.setupExperiment.experiment_id==exp_id))\n        if (ret==None):\n\t\t# no entry for participants, so create one\n                if value["participant"]!="":\n                        db.setupExperiment.insert(name="participant", valueString=value["participant"], experiment_id=exp_id)\n                        db.commit()\n\t\t\treturnvar= dict([("participant",str(value["participant"])),("experimental_id",exp_id), ("participant_id",part_id)])\n                        return gluon.contrib.simplejson.dumps(returnvar)\n                else:\n                        return "Please enter value for participant"\n\t#if paricipant number set and already exists\n        if (value["participant"]!=""):\n\t\t#done zero already\n                ##if integer increment, if not, just put in data given\n                ret.update_record(valueString=int(ret.valueString)+int(value[participant]))\n\n\t#return all values\n\n        returnvar= dict([("participant",str(ret.valueString)),("experimental_id",exp_id),("participant_id",part_id)])\n        return gluon.contrib.simplejson.dumps(returnvar)\n    else:\n        return "Error no parameter provided to read for participant"\n\ndef reset():\n        ret = db().select(db.experiment.ALL)\n\n        form=FORM("Experiment record to delete: ",SELECT(_name=\'title\', *[OPTION(ret[i].title,_value=ret[i].title) for i in range (len(ret))]),INPUT(_type="Submit"))\n        if form.accepts(request.vars):\n\n                ret=db.experiment((db.experiment.title==request.vars[\'title\']))\n                if (ret!=None):\n                        form=FORM(INPUT(_name="experiment_id",_value=ret.id,_type="hidden"),"Delete ?:",INPUT(_type="Checkbox",_name="delete"),INPUT(_type=\'submit\'))\n                        returnvar=dict([("Title",ret.title),("ExperimentType",ret.typeExperiment), ("start", False), ("delete",False),("form", form)])\n\n                        return returnvar\n                else:\n                        return "No such experiment"\n        else:\n                #second pass- so using different form\n                if request.vars:\n                        if (request.vars[\'delete\']==\'on\'):\n                        #delete\n                                ret=db.setupExperiment((db.setupExperiment.name=="Host_IP") & (db.setupExperiment.experiment_id==request.vars[\'experiment_id\']))\n                                if ret:ret.update_record(valueString="127.0.0.1")\n\n                                ret=db.setupExperiment((db.setupExperiment.name=="Port") & (db.setupExperiment.experiment_id==request.vars[\'experiment_id\']))\n                                if ret:ret.update_record(valueString="1100")\n\n                                ret=db.setupExperiment((db.setupExperiment.name=="participant") & (db.setupExperiment.experiment_id==request.vars[\'experiment_id\']))\n                                if ret:ret.update_record(valueString="0")\n\n                                ret=db((db.results.experiment_id==request.vars[\'experiment_id\']))\n                                if (ret):ret.delete()\n\n                                return dict(start=False, delete=True)\n                return dict(form=form, start=True, delete=False)\n\ndef setup_interface():\n\n        #request for form from interface\n        form=FORM("Experiment Title",INPUT(_name="Title"),\n                INPUT(_value="max_participants",_type="hidden"),"Maximum Participants: ",INPUT(_name="valueString"),\n                INPUT(_value="Host_IP",_type="hidden"),"Host: ",INPUT(_value="127.0.0.1",_name="valueString"),\n                INPUT(_value="Port",_type="hidden"),"Port: ",INPUT(_value="1100",_name="valueString"),\n                "Type of Experiment",SELECT(\'coin effort\', \'stag and hare\' ,_name="typeExperiment"),\n                "A Parameter: ", INPUT(_name=\'valueString\'),\n                "B Parameter: ", INPUT(_name=\'valueString\'),\n                "Rounds : ", INPUT(_name="rounds"),\n                INPUT(_type="submit"))\n        if form.accepts(request.vars):\n                name=[\'max_participants\',\'Host_IP\',\'Port\',\'a_parameter\',\'b_parameter\']\n                values=request.vars[\'valueString\']\n\n                #insert experiment name etc\n                exp_id=db.experiment.insert( title=request.vars[\'Title\'],typeExperiment=request.vars[\'typeExperiment\'],rounds=request.vars[\'rounds\']).id\n                \n                #now insert the array of named vars\n                i=0\n                while i<len(values):\n                        db.setupExperiment.insert(name=name[i], valueString=values[i], experiment_id=exp_id)\n                        i+=1\n                #default\n                db.setupExperiment.insert(name="participant", valueString=0, experiment_id=exp_id)\n                response.flash = \'form accepted\'\n                #cheating a bit\n                return dict(form="Experiment entered, id ="+str(exp_id))\n        elif form.errors:\n                response.flash = \'form has errors\'\n        else:\n                response.flash = \'please fill the form\'\n        return dict(form=form)\n\n\ndef setup():\n    if (request.vars):\n\tvalue=request.vars\n    \tvariable=value.keys()\n\t#check what order put in - exp_id set and variableData is being reviewd\n        if (variable[0]=="experiment_id"):\n\t\tvariableData=variable[1]\n\t\texp_id=value[variable[0]]\n\telse:\n\t    try:\n\t\tvariableData=variable[0]\n\t\texp_id=value[variable[1]]\n\t    except:\n\t\treturn " You need to provide experiment id"\n\t#setup has all paraamenter set\n\n        ret=db.setupExperiment((db.setupExperiment.name==variableData) & (db.setupExperiment.experiment_id==exp_id))\n\t#if this experiment data not entered yet\n\tif (ret==None):\n\t\tif value[variableData]!="":\n\t\t\tdb.setupExperiment.insert(name=variableData, valueString=value[variableData], experiment_id=exp_id)\n                \tdb.commit()\n\t\t\treturnvar= dict([(variableData,str(value[variableData])),("experimental_id",exp_id)])\n\t\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\t\telse:\n\t\t\treturn "Please enter value for "+variableData\n    \tif (value[variableData]!=""):\n        \tif value[variableData]=="0":\n                \tret.update_record(valueString=0)\n        \telse:\n\t\t\tret.update_record(valueString=value[variableData])\n\n\treturnvar= dict([(variableData,str(ret.valueString)),("experimental_id",exp_id)])\n    \treturn gluon.contrib.simplejson.dumps(returnvar)\n    else:\n\tform\n        return "Error no parameter provided to read from data"\n   \ndef experiment():\n    type=[\'Unknown\',\'stag and hare\', \'coin effort\']\n    if (request.vars):\n        value=request.vars\n        variable=value.keys()\n\t## if id given\n        if (value[\'id\']>0):\n\t\tret=db.experiment(db.experiment.id==value[\'id\'])\n\telse:\n\t\t\n\t##check if exists by title and return id\n\t\tret=db.experiment(db.experiment.title==value[\'title\'])\n        if (ret!=None):\n\t\t##return if already found\n\t\treturnvar = dict([("id",ret["id"])])\n\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\n\telse:\n\t\t#create if can, if not send error\n\t\ttry:\n\t\t\tret=db.experiment.insert(title=value[\'title\'], typeExperiment=type[int(value[\'type\'])], rounds=value[\'rounds\'])\n                \tdb.commit()\n\t\t\treturnvar = dict([("id",ret[\'id\']), ("title",ret[\'title\']),("typeExperiment",ret[\'typeExperiment\']),("rounds",ret[\'rounds\'])])\n\t\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\n\t\texcept Exception, e:\n\t\t\t\n\t\t\treturn "Error no parameter or incorrect parameter provided for data entry [title,type,rounds(number): %s" %e\n\n    else:\n        return "Error no parameter provided to read from data"\n\ndef check_part(value, stage_id):\n    type=[\'Request\', \'Receive\', \'Wait\',\'End\']\n    # not return if not all participants ready\n    participants=db((db.results.experiment_id==value[\'experiment_id\'])&(db.results.stage_id==stage_id)&(db.results.name=="response"))\n    parts=db(db.experiment_participant.experiment_id==value[\'experiment_id\'])\n    if int(participants.count())<int(parts.count()):\n        returnvar = dict([("id",value["id"]),("experiment_id",value[\'experiment_id\']), ("stage_number",value[\'stage_number\']),("type_stage",type[2])])\n\treturn gluon.contrib.simplejson.dumps(returnvar)\n\ndef stages():\n    type=[\'Request\', \'Response\', \'Wait\',\'End\']\n    # not return if not all participants\n    if (request.vars):\n        value=request.vars\n        variable=value.keys()\n\tstage_number=int(value["stage_number"])\n\tif stage_number>0:\n\t   try:\n                ret=db.stages((db.stages.experiment_id==value[\'experiment_id\'])&(db.stages.stage_number==(int(value["stage_number"]))))\n                stage_id=db.stages(db.stages.stage_number==stage_number).id\n\n           except Exception, e:\n                return "Stage_number required "+str(e)\n\t   if (ret==None): step=type[2]\n\t   else: step=ret.type_stage\n##check if participants full or results full as appropraite for that stage\n\t   if step==type[1] or step==type[2]:\n\t\ttypeS="participants"\n\t   else:\n\t\ttypeS="results"\t\n        ## if id given\n        if (value[\'id\']>0):\n                ret=db.stages(db.stages.id==value[\'id\'])\n\n\tif (stage_number==0 or complete(value,typeS, stage_id)):\n\t\t#completed stage\n\t\tstage_number+=1\n\n        ##check if exists by exp and stage number and return id\n        \tret=db.stages((db.stages.experiment_id==value[\'experiment_id\'])&(db.stages.stage_number==stage_number))\n        \tif (ret!=None):\n                ##return if already found\n                \treturnvar = dict([("id",ret["id"]),("experiment_id",ret[\'experiment_id\']), ("stage_number",ret[\'stage_number\']),("type_stage",ret[\'type_stage\']),("message",ret[\'message\'])])\n                \treturn gluon.contrib.simplejson.dumps(returnvar)\n\n        \telif value[\'stage_number\']>0:  \n##skip error in entry\n                #create if can, if not send error\n                \ttry:\n                        \tret=db.stages.insert(experiment_id=value[\'experiment_id\'], type_stage=type[int(value[\'type\'])],stage_number=value[\'stage_number\'] )\n                        \tdb.commit()\n                        \treturnvar = dict([("id",ret[\'id\']),("experiment_id",ret[\'experiment_id\']),("stage_number",ret[\'stage_number\']),("type_stage",ret[\'type_stage\']),("message",ret[\'message\'])])\n                        \treturn gluon.contrib.simplejson.dumps(returnvar)\n\n                \texcept Exception, e:\n\n                        \treturn "Error no parameter or incorrect parameter provided for data entry [experiment_id,stage_number, type]: %s" %e\n\telse:\n\t\treturn "Stage not complete"\n    else:\n        return "Error no parameter provided to read from data eg check stage_number>0"\n\ndef get_round():\n\n    if request.vars:\n        value=request.vars\n        ret=db.setupExperiment((db.setupExperiment.experiment_id==value[\'experiment_id\'])&(db.setupExperiment.name=="rounds"))\n    \tif ret!=None:\n\t\t\n\t\tround_id=ret[\'valueString\']\n    \telse:\n\t\tround_id=1\n\treturnvar=dict([("round_id",round_id)])\n        return gluon.contrib.simplejson.dumps(returnvar)\n\n    else: \n\treturn "Unknown experiment"\n\ndef next_round():\n    if request.vars:\n\tvalue=request.vars\n\tret=db((db.results.experiment_id==value[\'experiment_id\']))\n\trounds=[]\n\tif ret!=None: \n\t\trounds=ret.select()\n\texp_id=value[\'experiment_id\']\n\tround_id=1\n\tfor row in rounds:\n\t\tif row["round_id"]>=round_id:\t\n\t\t\tround_id=row["round_id"]+1\n\t##add to setupExp\n\tret=db.setupExperiment((db.setupExperiment.name=="rounds") & (db.setupExperiment.experiment_id==exp_id))\n\tif ret!=None:\n\t\tret.update_record(valueString=round_id)\n\telse:\n\t \tdb.setupExperiment.insert(name="rounds", valueString=round_id, experiment_id=exp_id)\n\tdb.commit()\t\t\n\treturnvar=dict([("round_id",round_id)])\n        return gluon.contrib.simplejson.dumps(returnvar)\n\t\n##resets experimetn\ndef delete_results():\n    if (request.vars):\n        value=request.vars\n        variable=value.keys()\n\n \tret=db((db.results.experiment_id==value[\'experiment_id\'])&(db.results.round_id==value[\'round_id\']))\n\tret.delete();\n\treturn "Done"\n\ndef exportCSV():\n     input=request.args[0]\n\n     experiment_id=int(input[19:])\n     results=db(db.experiment.id==experiment_id).select()\n     return dict(results=results)\n\ndef results():\n    if (request.vars):\n        value=request.vars\n        variable=value.keys()\n\tstage_id=0\n\n\ttry:\n\t\tret=db.stages((db.stages.experiment_id==value[\'experiment_id\'])&(db.stages.stage_number==value["stage_number"]))\n        \tstage_number=value["stage_number"]\n        \tstage_id=db.stages(db.stages.stage_number==stage_number).id\n\n\texcept Exception, e:\n\t\t##not selected a stage_number\n        \tstage_id=0\n\t## if id given\n        if (value[\'id\']>0):\n\n                ret=db.results(db.results.id==value[\'id\'])\n\t\treturn dict(results=ret)\n\t#request to print results for all rounds\n        elif value[\'name\']=="Results":\n\t\texp_id=int(value["experiment_id"])\n \t\tif (stage_id!=0):\n\n                        if (value[\'round_id\']!="") & (value["round_id"]!=None) : ret=db((db.results.experiment_id==exp_id)&(db.results.stage_id==stage_id)&(db.results.round_id==value[\'round_id\'])).select()\n\n                        else: ret=db((db.results.experiment_id==value[\'experiment_id\'])&(db.results.stage_id==stage_id)).select()\n                elif (value[\'round_id\']!="") & (value["round_id"]!=None): ret=db((db.results.experiment_id==exp_id)&(db.results.round_id==value[\'round_id\'])).select()\n                else:  ret=db((db.results.experiment_id==exp_id)).select()\n\t\texp=db.experiment(db.experiment.id==exp_id)\n\t\tlogging.warn(experiment)\n\t\tstages=db(db.stages.experiment_id==exp_id).select()\n                parameters=db(db.setupExperiment.experiment_id==exp_id).select()\n\t\treturn dict(results=ret, exp=exp, parameters=parameters,stages=stages)\n\n\telif value[\'name\']=="Result":\n\t\tpart_result=db.results((db.results.experiment_id==value[\'experiment_id\'])&(db.results.stage_id==stage_id)&(db.results.round_id==value[\'round_id\'])&(db.results.participant_id==value[\'participant_id\']))[\'valueString\']\n\t\tresult=add_results(dict([("experiment_id",value[\'experiment_id\']),("stage_id",stage_id),("round_id",value[\'round_id\'])]))\n\t\texp_type=db.experiment(db.experiment.id==value[\'experiment_id\'])\n\t\tif exp_type.typeExperiment=="coin effort":\n\t\t\ta=db.setupExperiment((db.setupExperiment.name=="a_parameter")&(db.setupExperiment.experiment_id==value[\'experiment_id\']))[\'valueString\']\n\n\t\t\tb=db.setupExperiment((db.setupExperiment.name=="b_parameter")&(db.setupExperiment.experiment_id==value[\'experiment_id\']))[\'valueString\']\n\n\t\t\tresult=float(a)*float(result)-float(b)*float(part_result)\n\t\telse:\n\t\t\tpass\n\t\treturnvar=dict([("message","Your return is: "),("Results",result)])\n\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\telse:\n        ##check if exists by exp and stage number and return id\n                try:\n\t\t\tresultEnter=db.results((db.results.experiment_id==value[\'experiment_id\'])&(db.results.participant_id==value[\'participant_id\'])&(db.results.round_id==value[\'round_id\'])&(db.results.stage_id==stage_id)&(db.results.name==value[\'name\'])&(db.results.valueString==int(value[\'value\'])))\n\t\texcept Exception , e:\n\t\t\treturn "Incorrect call to api: "+str(e)\n\tif (resultEnter!=None):\n                ##return if already found\n                returnvar = dict([("id",resultEnter["id"]),("experiment_id",resultEnter[\'experiment_id\']),("stage_id",stage_number),("round_id",resultEnter[\'round_id\']),("name",resultEnter["name"]),("value",resultEnter[\'valueString\'])])\n                return gluon.contrib.simplejson.dumps(returnvar)\n\n        else:\n                try:\n                        ret=db.results.insert(experiment_id=value[\'experiment_id\'], participant_id=value[\'participant_id\'],stage_id=stage_id,round_id=value[\'round_id\'],name=value[\'name\'],valueString=int(value[\'value\']))\n                        db.commit()\n                        returnvar = dict([("id",ret["id"]),("experiment_id",ret[\'experiment_id\']),("stage_number",stage_number),("round_id",ret[\'round_id\']),("name",ret["name"]),("value",ret[\'valueString\'])])\n\t\t\treturn gluon.contrib.simplejson.dumps(returnvar)\n\n                except Exception, e:\n\n                        return "Error no parameter or incorrect parameter provided for data entry [experiment_id,participant_id, round_id,name,value]: %s" %e\n\n    else:\n        return "Error no parameter provided to read from data"\n\ndef add_results(variable):\n\tresults=db((db.results.experiment_id==variable[\'experiment_id\'])&(db.results.stage_id==variable[\'stage_id\'])& (db.results.round_id==variable[\'round_id\'])).select()\n\treturnResult=[]\n\tfor res in results:\t\n\t\treturnResult.append(res.valueString)\n\tret=min(returnResult)\n\treturn ret\n\t\t\n\ndef complete(value,step, stage_id):\n        variable=value.keys()\n        max_participants=db.setupExperiment((db.setupExperiment.name=="max_participants")&(db.setupExperiment.experiment_id==value[\'experiment_id\']))[\'valueString\']\n\tif step=="participants":parts=db(db.experiment_participant.experiment_id==value[\'experiment_id\'])\n\tif step=="results":parts=db((db.results.experiment_id==value[\'experiment_id\'])&(db.results.round_id==value[\'round_id\'])&(db.results.stage_id==stage_id))\n\tif int(parts.count())>=int(max_participants):\n\t\treturn True\n\telse:\n\t\treturn False\n\n \ndef api():\n    """\n    this is example of API with access control\n    WEB2PY provides Hypermedia API (Collection+JSON) Experimental\n    """\n    from gluon.contrib.hypermedia import Collection\n    rules = {\n        \'<tablename>\': {\'GET\':{},\'POST\':{},\'PUT\':{},\'DELETE\':{}},\n        }\n    return Collection(db).process(request,response,rules)\n\nresponse._vars=response._caller(results)\n'
+p7
+sS'snapshot'
+p8
+(dp9
+S'exception'
+p10
+(dp11
+S'__hash__'
+p12
+S"<method-wrapper '__hash__' of exceptions.TypeError object>"
+p13
+sS'__setattr__'
+p14
+S"<method-wrapper '__setattr__' of exceptions.TypeError object>"
+p15
+sS'__reduce_ex__'
+p16
+S'<built-in method __reduce_ex__ of exceptions.TypeError object>'
+p17
+sS'__getslice__'
+p18
+S"<method-wrapper '__getslice__' of exceptions.TypeError object>"
+p19
+sS'__getitem__'
+p20
+S"<method-wrapper '__getitem__' of exceptions.TypeError object>"
+p21
+sS'__setstate__'
+p22
+S'<built-in method __setstate__ of exceptions.TypeError object>'
+p23
+sS'args'
+p24
+S'("\'NoneType\' object has no attribute \'__getitem__\'",)'
+p25
+sS'__reduce__'
+p26
+S'<built-in method __reduce__ of exceptions.TypeError object>'
+p27
+sS'__str__'
+p28
+S"<method-wrapper '__str__' of exceptions.TypeError object>"
+p29
+sS'__format__'
+p30
+S'<built-in method __format__ of exceptions.TypeError object>'
+p31
+sS'__getattribute__'
+p32
+S"<method-wrapper '__getattribute__' of exceptions.TypeError object>"
+p33
+sS'__class__'
+p34
+S"<type 'exceptions.TypeError'>"
+p35
+sS'__unicode__'
+p36
+S'<built-in method __unicode__ of exceptions.TypeError object>'
+p37
+sS'__delattr__'
+p38
+S"<method-wrapper '__delattr__' of exceptions.TypeError object>"
+p39
+sS'__subclasshook__'
+p40
+S'<built-in method __subclasshook__ of type object>'
+p41
+sS'__repr__'
+p42
+S"<method-wrapper '__repr__' of exceptions.TypeError object>"
+p43
+sS'__dict__'
+p44
+S'{}'
+p45
+sS'__sizeof__'
+p46
+S'<built-in method __sizeof__ of exceptions.TypeError object>'
+p47
+sS'__doc__'
+p48
+S"'Inappropriate argument type.'"
+p49
+sS'__init__'
+p50
+S"<method-wrapper '__init__' of exceptions.TypeError object>"
+p51
+sS'__new__'
+p52
+S'<built-in method __new__ of type object>'
+p53
+ssS'evalue'
+p54
+S"'NoneType' object has no attribute '__getitem__'"
+p55
+sS'request'
+p56
+cgluon.html
+XML_unpickle
+p57
+(S's\xdb<\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">ajax</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">application</td><td style="vertical-align:top;">:</td><td><div>ZTree</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">args</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cid</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">client</td><td style="vertical-align:top;">:</td><td><div>129.94.151.33</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">controller</td><td style="vertical-align:top;">:</td><td><div>experiments</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cookies</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">env</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">CONTENT_LENGTH</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">CONTENT_TYPE</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">DOCUMENT_ROOT</td><td style="vertical-align:top;">:</td><td><div>/usr/share/nginx/html</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT</td><td style="vertical-align:top;">:</td><td><div>*/*</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_ACCEPT_ENCODING</td><td style="vertical-align:top;">:</td><td><div>identity</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_HOST</td><td style="vertical-align:top;">:</td><td><div>129.94.151.97</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">HTTP_USER_AGENT</td><td style="vertical-align:top;">:</td><td><div>UnityPlayer/5.3.2f1 (http://unity3d.com)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">PATH_INFO</td><td style="vertical-align:top;">:</td><td><div>/ZTree/experiments/results</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">QUERY_STRING</td><td style="vertical-align:top;">:</td><td><div>experiment_id=1&amp;stage_number=0&amp;round_id=9&amp;name=Result&amp;participant_id=8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REMOTE_ADDR</td><td style="vertical-align:top;">:</td><td><div>129.94.151.33</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REMOTE_PORT</td><td style="vertical-align:top;">:</td><td><div>49566</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REQUEST_METHOD</td><td style="vertical-align:top;">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">REQUEST_URI</td><td style="vertical-align:top;">:</td><td><div>/ZTree/experiments/results?experiment_id=1&amp;stage_number=0&amp;round_id=9&amp;name=Result&amp;participant_id=8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_NAME</td><td style="vertical-align:top;">:</td><td><div>vr</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_PORT</td><td style="vertical-align:top;">:</td><td><div>80</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_PROTOCOL</td><td style="vertical-align:top;">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">SERVER_SOFTWARE</td><td style="vertical-align:top;">:</td><td><div>nginx/1.4.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">UWSGI_SCHEME</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">app_folders</td><td style="vertical-align:top;">:</td><td><div>set([&#x27;/usr/local/web2py/applications/ZTree/&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">applications_parent</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">content_length</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">content_type</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">db_sessions</td><td style="vertical-align:top;">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">debugging</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">document_root</td><td style="vertical-align:top;">:</td><td><div>/usr/share/nginx/html</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">gluon_parent</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept</td><td style="vertical-align:top;">:</td><td><div>*/*</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_accept_encoding</td><td style="vertical-align:top;">:</td><td><div>identity</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_host</td><td style="vertical-align:top;">:</td><td><div>129.94.151.97</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">http_user_agent</td><td style="vertical-align:top;">:</td><td><div>UnityPlayer/5.3.2f1 (http://unity3d.com)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_jython</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_pypy</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_source</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">local_hosts</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>::1</div></td></tr><tr><td><div>127.0.1.1</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>127.0.0.1</div></td></tr><tr><td><div>vr</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path_info</td><td style="vertical-align:top;">:</td><td><div>/ZTree/experiments/results</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">query_string</td><td style="vertical-align:top;">:</td><td><div>experiment_id=1&amp;stage_number=0&amp;round_id=9&amp;name=Result&amp;participant_id=8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remote_addr</td><td style="vertical-align:top;">:</td><td><div>129.94.151.33</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">remote_port</td><td style="vertical-align:top;">:</td><td><div>49566</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">request_method</td><td style="vertical-align:top;">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">request_uri</td><td style="vertical-align:top;">:</td><td><div>/ZTree/experiments/results?experiment_id=1&amp;stage_number=0&amp;round_id=9&amp;name=Result&amp;participant_id=8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_name</td><td style="vertical-align:top;">:</td><td><div>vr</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_port</td><td style="vertical-align:top;">:</td><td><div>80</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_protocol</td><td style="vertical-align:top;">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">server_software</td><td style="vertical-align:top;">:</td><td><div>nginx/1.4.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">uwsgi.node</td><td style="vertical-align:top;">:</td><td><div>vr</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">uwsgi.version</td><td style="vertical-align:top;">:</td><td><div>2.0.12</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">uwsgi_node</td><td style="vertical-align:top;">:</td><td><div>vr</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">uwsgi_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">uwsgi_version</td><td style="vertical-align:top;">:</td><td><div>2.0.12</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_path</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_version</td><td style="vertical-align:top;">:</td><td><div>2.13.4-stable+timestamp.2015.12.26.04.59.39</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.errors</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;wsgi_errors&#x27;, mode &#x27;w&#x27; at 0x7f1610408270&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.file_wrapper</td><td style="vertical-align:top;">:</td><td><div>&lt;built-in function uwsgi_sendfile&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.input</td><td style="vertical-align:top;">:</td><td><div>&lt;uwsgi._Input object at 0x7f1614f5e690&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.multiprocess</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.multithread</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.run_once</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.url_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi.version</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_errors</td><td style="vertical-align:top;">:</td><td><div>&lt;open file &#x27;wsgi_errors&#x27;, mode &#x27;w&#x27; at 0x7f1610408270&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_file_wrapper</td><td style="vertical-align:top;">:</td><td><div>&lt;built-in function uwsgi_sendfile&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_input</td><td style="vertical-align:top;">:</td><td><div>&lt;uwsgi._Input object at 0x7f1614f5e690&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_multiprocess</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_multithread</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_run_once</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_url_scheme</td><td style="vertical-align:top;">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi_version</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">extension</td><td style="vertical-align:top;">:</td><td><div>html</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">folder</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py/applications/ZTree/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">function</td><td style="vertical-align:top;">:</td><td><div>results</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">global_settings</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">app_folders</td><td style="vertical-align:top;">:</td><td><div>set([&#x27;/usr/local/web2py/applications/ZTree/&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">applications_parent</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">db_sessions</td><td style="vertical-align:top;">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">debugging</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">gluon_parent</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_jython</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_pypy</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_source</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">local_hosts</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>::1</div></td></tr><tr><td><div>127.0.1.1</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>127.0.0.1</div></td></tr><tr><td><div>vr</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">web2py_version</td><td style="vertical-align:top;">:</td><td><div>2.13.4-stable+timestamp.2015.12.26.04.59.39</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_https</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_local</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_restful</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_scheduler</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">is_shell</td><td style="vertical-align:top;">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">now</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2016, 3, 24, 18, 7, 47, 390558)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">raw_args</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">raw_extension</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">url</td><td style="vertical-align:top;">:</td><td><div>/ZTree/experiments/results</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">utcnow</td><td style="vertical-align:top;">:</td><td><div>datetime.datetime(2016, 3, 24, 7, 7, 47, 390569)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">wsgi</td><td style="vertical-align:top;">:</td><td><div>&lt;gluon.main.LazyWSGI object at 0x7f160fb05d50&gt;</div></td></tr></table></div>'
+tRp58
+sS'frames'
+p59
+(lp60
+(dp61
+S'file'
+p62
+S'/usr/local/web2py/gluon/restricted.py'
+p63
+sS'dump'
+p64
+(dp65
+S'environment'
+p66
+S"{'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'ASSIGNJS': <function ASSIGNJS>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, 'CAT': <class 'gluon.html.CAT'>, ...}"
+p67
+sS'ccode'
+p68
+S'<code object <module> at 0x7f160fbdd0b0, file "/...tions/ZTree/controllers/experiments.py", line 11>'
+p69
+ssS'lnum'
+p70
+I227
+sS'lines'
+p71
+(dp72
+I224
+S'            ccode = code'
+p73
+sI225
+S'        else:'
+p74
+sI226
+S'            ccode = compile2(code, layer)'
+p75
+sI227
+S'        exec ccode in environment'
+p76
+sI228
+S'    except HTTP:'
+p77
+sI229
+S'        raise'
+p78
+sI230
+S'    except RestrictedError:'
+p79
+sI231
+S'        # do not encapsulate (obfuscate) the original RestrictedError'
+p80
+sI222
+S'    try:'
+p81
+sI223
+S'        if isinstance(code, types.CodeType):'
+p82
+ssS'call'
+p83
+S"(code='# -*- coding: utf-8 -*-\\n# this file is released ...rules)\\n\\nresponse._vars=response._caller(results)\\n', environment={'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'ASSIGNJS': <function ASSIGNJS>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, 'CAT': <class 'gluon.html.CAT'>, ...}, layer='/usr/local/web2py/applications/ZTree/controllers/experiments.py')"
+p84
+sS'func'
+p85
+S'restricted'
+p86
+sa(dp87
+g62
+S'/usr/local/web2py/applications/ZTree/controllers/experiments.py'
+p88
+sg64
+(dp89
+sg70
+I480
+sg71
+(dp90
+I469
+S'def api():'
+p91
+sI470
+S'    """'
+p92
+sI471
+S'    this is example of API with access control'
+p93
+sI472
+S'    WEB2PY provides Hypermedia API (Collection+JSON) Experimental'
+p94
+sI473
+S'    """'
+p95
+sI474
+S'    from gluon.contrib.hypermedia import Collection'
+p96
+sI475
+S'    rules = {'
+p97
+sI476
+S"        '<tablename>': {'GET':{},'POST':{},'PUT':{},'DELETE':{}},"
+p98
+sI477
+S'        }'
+p99
+sI478
+S'    return Collection(db).process(request,response,rules)'
+p100
+ssg83
+S'()'
+p101
+sg85
+S'<module>'
+p102
+sa(dp103
+g62
+S'/usr/local/web2py/gluon/globals.py'
+p104
+sg64
+(dp105
+S'self'
+p106
+S'undefined'
+p107
+sS'f'
+S'<function results>'
+p108
+ssg70
+I412
+sg71
+(dp109
+I416
+S"        self.generic_patterns = ['*']"
+p110
+sI407
+S"        self.flash = ''            # used by the default view layout"
+p111
+sI408
+S'        self.meta = Storage()      # used by web2py_ajax.html'
+p112
+sI409
+S'        self.menu = []             # used by the default view layout'
+p113
+sI410
+S'        self.files = []            # used by web2py_ajax.html'
+p114
+sI411
+S'        self._vars = None'
+p115
+sI412
+S'        self._caller = lambda f: f()'
+p116
+sI413
+S'        self._view_environment = None'
+p117
+sI414
+S'        self._custom_commit = None'
+p118
+sI415
+S'        self._custom_rollback = None'
+p119
+ssg83
+S'(f=<function results>)'
+p120
+sg85
+S'<lambda>'
+p121
+sa(dp122
+g62
+S'/usr/local/web2py/applications/ZTree/controllers/experiments.py'
+p123
+sg64
+(dp124
+S'stage_id'
+p125
+S'0'
+sS'db.results.participant_id'
+p126
+S'<pydal.objects.Field object>'
+p127
+sS'part_result'
+p128
+g107
+sS'db.results.experiment_id'
+p129
+S'<pydal.objects.Field object>'
+p130
+sS'db.results'
+p131
+S'<Table results (id,experiment_id,participant_id,stage_id,round_id,name,valueString)>'
+p132
+sS'value'
+p133
+S"<Storage {'round_id': '9', 'stage_number': '0', ...t', 'experiment_id': '1', 'participant_id': '8'}>"
+p134
+sS'db.results.round_id'
+p135
+S'<pydal.objects.Field object>'
+p136
+sS'global db'
+p137
+S'<DAL uri="mysql:******@localhost/ZTree">'
+p138
+sS'db.results.stage_id'
+p139
+S'<pydal.objects.Field object>'
+p140
+ssg70
+I411
+sg71
+(dp141
+I406
+S'\t\tstages=db(db.stages.experiment_id==exp_id).select()'
+p142
+sI407
+S'                parameters=db(db.setupExperiment.experiment_id==exp_id).select()'
+p143
+sI408
+S'\t\treturn dict(results=ret, exp=exp, parameters=parameters,stages=stages)'
+p144
+sI409
+S''
+sI410
+S'\telif value[\'name\']=="Result":'
+p145
+sI411
+S"\t\tpart_result=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))['valueString']"
+p146
+sI412
+S'\t\tresult=add_results(dict([("experiment_id",value[\'experiment_id\']),("stage_id",stage_id),("round_id",value[\'round_id\'])]))'
+p147
+sI413
+S"\t\texp_type=db.experiment(db.experiment.id==value['experiment_id'])"
+p148
+sI414
+S'\t\tif exp_type.typeExperiment=="coin effort":'
+p149
+sI415
+S'\t\t\ta=db.setupExperiment((db.setupExperiment.name=="a_parameter")&(db.setupExperiment.experiment_id==value[\'experiment_id\']))[\'valueString\']'
+p150
+ssg83
+S'()'
+p151
+sg85
+S'results'
+p152
+sasS'pyver'
+p153
+S'Python 2.7.6: /usr/local/bin/uwsgi (prefix: /usr)'
+p154
+sS'session'
+p155
+g57
+(S's\x1a\x00\x00\x00<div><table></table></div>'
+tRp156
+sS'etype'
+p157
+S"<type 'exceptions.TypeError'>"
+p158
+sS'date'
+p159
+S'Thu Mar 24 18:07:47 2016'
+p160
+sS'response'
+p161
+g57
+(S'sK\x1f\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top;">body</td><td style="vertical-align:top;">:</td><td><div>&lt;cStringIO.StringO object at 0x7f160fde7880&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">cookies</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">session_id_ztree</td><td style="vertical-align:top;">:</td><td><div>129.94.151.33-4e57158b-e215-402f-8a9f-3c26be7745e4<table><tr><td style="font-weight:bold;vertical-align:top;">comment</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">domain</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">expires</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">httponly</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">max-age</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">path</td><td style="vertical-align:top;">:</td><td><div>/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">secure</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">version</td><td style="vertical-align:top;">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">delimiters</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>{{</div></td></tr><tr><td><div>}}</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">files</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">flash</td><td style="vertical-align:top;">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">form_label_separator</td><td style="vertical-align:top;">:</td><td><div>: </div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">formstyle</td><td style="vertical-align:top;">:</td><td><div>table3cols</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">generic_patterns</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">google_analytics_id</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">headers</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">X-Powered-By</td><td style="vertical-align:top;">:</td><td><div>web2py</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">logo</td><td style="vertical-align:top;">:</td><td><div><a class="brand" href="http://www.web2py.com/"><b>web<span>2</span>py</b>&trade;&nbsp;</a></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">menu</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div><table><tr><td><div>Home</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/ZTree/default/index</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Setup </div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/ZTree/experiments/setup_interface</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Results </div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/ZTree/experiments/display_results</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Reset </div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/ZTree/experiments/reset</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Edit App</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/design/ZTree</div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Edit Controller</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/admin/default/edit/ZTree/controllers/experiments.py</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">meta</td><td style="vertical-align:top;">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top;">author</td><td style="vertical-align:top;">:</td><td><div>Cat Kutay &lt;cat.kutay@unsw.edu.au&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">generator</td><td style="vertical-align:top;">:</td><td><div>Web2py Web Framework</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">keywords</td><td style="vertical-align:top;">:</td><td><div>web2py, python, framework</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">models_to_run</td><td style="vertical-align:top;">:</td><td><div><table><tr><td><div>^\\w+\\.py$</div></td></tr><tr><td><div>^experiments/\\w+\\.py$</div></td></tr><tr><td><div>^experiments/results/\\w+\\.py$</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">postprocessing</td><td style="vertical-align:top;">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_client</td><td style="vertical-align:top;">:</td><td><div>129.94.151.33</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_compression_level</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_expires</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_cookie_key</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_data_name</td><td style="vertical-align:top;">:</td><td><div>session_data_ztree</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_file</td><td style="vertical-align:top;">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_filename</td><td style="vertical-align:top;">:</td><td><div>/usr/local/web2py/applications/ZTree/sessions/129.94.151.33-4e57158b-e215-402f-8a9f-3c26be7745e4</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_hash</td><td style="vertical-align:top;">:</td><td><div>c0762cbf4baf7f9af97c051e7fcb8083</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id</td><td style="vertical-align:top;">:</td><td><div>129.94.151.33-4e57158b-e215-402f-8a9f-3c26be7745e4</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_id_name</td><td style="vertical-align:top;">:</td><td><div>session_id_ztree</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_masterapp</td><td style="vertical-align:top;">:</td><td><div>ZTree</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_new</td><td style="vertical-align:top;">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">session_storage_type</td><td style="vertical-align:top;">:</td><td><div>file</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">status</td><td style="vertical-align:top;">:</td><td><div>200</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">subtitle</td><td style="vertical-align:top;">:</td><td><div>VR emulation</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">title</td><td style="vertical-align:top;">:</td><td><div>ZTreeServer</div></td></tr><tr><td style="font-weight:bold;vertical-align:top;">view</td><td style="vertical-align:top;">:</td><td><div>experiments/results.html</div></td></tr></table></div>'
+tRp162
+sS'locals'
+p163
+(dp164
+S'stage_id'
+p165
+S'0'
+sS'e'
+S'AttributeError("\'NoneType\' object has no attribute \'id\'",)'
+p166
+sS'ret'
+p167
+S'None'
+p168
+sS'value'
+p169
+S"<Storage {'round_id': '9', 'stage_number': '0', ...t', 'experiment_id': '1', 'participant_id': '8'}>"
+p170
+sS'variable'
+p171
+S"['round_id', 'stage_number', 'name', 'experiment_id', 'participant_id']"
+p172
+sS'stage_number'
+p173
+S"'0'"
+p174
+sssS'traceback'
+p175
+S'Traceback (most recent call last):\n  File "/usr/local/web2py/gluon/restricted.py", line 227, in restricted\n    exec ccode in environment\n  File "/usr/local/web2py/applications/ZTree/controllers/experiments.py", line 480, in <module>\n  File "/usr/local/web2py/gluon/globals.py", line 412, in <lambda>\n    self._caller = lambda f: f()\n  File "/usr/local/web2py/applications/ZTree/controllers/experiments.py", line 411, in results\n    part_result=db.results((db.results.experiment_id==value[\'experiment_id\'])&(db.results.stage_id==stage_id)&(db.results.round_id==value[\'round_id\'])&(db.results.participant_id==value[\'participant_id\']))[\'valueString\']\nTypeError: \'NoneType\' object has no attribute \'__getitem__\'\n'
+p176
+s.

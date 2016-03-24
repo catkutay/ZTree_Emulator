@@ -144,7 +144,6 @@ def reset():
                                 if ret:ret.update_record(valueString="0")
 
                                 ret=db((db.results.experiment_id==request.vars['experiment_id']))
-                                logging.warn(ret)
                                 if (ret):ret.delete()
 
                                 return dict(start=False, delete=True)
@@ -163,7 +162,6 @@ def setup_interface():
                 "Rounds : ", INPUT(_name="rounds"),
                 INPUT(_type="submit"))
         if form.accepts(request.vars):
-                logging.warn(request.vars)
                 name=['max_participants','Host_IP','Port','a_parameter','b_parameter']
                 values=request.vars['valueString']
 
@@ -319,8 +317,45 @@ def stages():
     else:
         return "Error no parameter provided to read from data eg check stage_number>0"
 
+def get_round():
 
-##remove this before distribution - resets experimetn
+    if request.vars:
+        value=request.vars
+        ret=db.setupExperiment((db.setupExperiment.experiment_id==value['experiment_id'])&(db.setupExperiment.name=="rounds"))
+    	if ret!=None:
+		
+		round_id=ret['valueString']
+    	else:
+		round_id=1
+	returnvar=dict([("round_id",round_id)])
+        return gluon.contrib.simplejson.dumps(returnvar)
+
+    else: 
+	return "Unknown experiment"
+
+def next_round():
+    if request.vars:
+	value=request.vars
+	ret=db((db.results.experiment_id==value['experiment_id']))
+	rounds=[]
+	if ret!=None: 
+		rounds=ret.select()
+	exp_id=value['experiment_id']
+	round_id=1
+	for row in rounds:
+		if row["round_id"]>=round_id:	
+			round_id=row["round_id"]+1
+	##add to setupExp
+	ret=db.setupExperiment((db.setupExperiment.name=="rounds") & (db.setupExperiment.experiment_id==exp_id))
+	if ret!=None:
+		ret.update_record(valueString=round_id)
+	else:
+	 	db.setupExperiment.insert(name="rounds", valueString=round_id, experiment_id=exp_id)
+	db.commit()		
+	returnvar=dict([("round_id",round_id)])
+        return gluon.contrib.simplejson.dumps(returnvar)
+	
+##resets experimetn
 def delete_results():
     if (request.vars):
         value=request.vars
@@ -329,6 +364,13 @@ def delete_results():
  	ret=db((db.results.experiment_id==value['experiment_id'])&(db.results.round_id==value['round_id']))
 	ret.delete();
 	return "Done"
+
+def exportCSV():
+     input=request.args[0]
+     filename=input.split(".")
+     experiment_id=int(filename[1])
+     results=db(db.results.experiment_id==experiment_id).select()
+     return dict(results=results)
 
 def results():
     if (request.vars):
@@ -349,15 +391,23 @@ def results():
 
                 ret=db.results(db.results.id==value['id'])
 		return dict(results=ret)
+	#request to print results for all rounds
         elif value['name']=="Results":
-		if (stage_id>0):ret=db((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])).select()
-		elif value['round_id']!="" : ret=db((db.results.experiment_id==value['experiment_id'])&(db.results.round_id==value['round_id'])).select()
-		else:  ret=db((db.results.experiment_id==value['experiment_id'])).select()
-		return dict(results=ret)
+		exp_id=int(value["experiment_id"])
+ 		if (stage_id!=0):
 
+                        if (value['round_id']!="") & (value["round_id"]!=None) : ret=db((db.results.experiment_id==exp_id)&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])).select()
+
+                        else: ret=db((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)).select()
+                elif (value['round_id']!="") & (value["round_id"]!=None): ret=db((db.results.experiment_id==exp_id)&(db.results.round_id==value['round_id'])).select()
+                else:  ret=db((db.results.experiment_id==exp_id)).select()
+		exp=db.experiment(db.experiment.id==exp_id)
+		logging.warn(experiment)
+		stages=db(db.stages.experiment_id==exp_id).select()
+                parameters=db(db.setupExperiment.experiment_id==exp_id).select()
+		return dict(results=ret, exp=exp, parameters=parameters,stages=stages)
 
 	elif value['name']=="Result":
-
 		part_result=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))['valueString']
 		result=add_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 		exp_type=db.experiment(db.experiment.id==value['experiment_id'])
@@ -370,8 +420,6 @@ def results():
 		else:
 			pass
 		returnvar=dict([("message","Your return is: "),("Results",result)])
-		logging.warn("Result")
-		logging.warn(results)
 		return gluon.contrib.simplejson.dumps(returnvar)
 	else:
         ##check if exists by exp and stage number and return id
@@ -388,7 +436,7 @@ def results():
                 try:
                         ret=db.results.insert(experiment_id=value['experiment_id'], participant_id=value['participant_id'],stage_id=stage_id,round_id=value['round_id'],name=value['name'],valueString=int(value['value']))
                         db.commit()
-                        returnvar = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']),("stage_id",stage_number),("round_id",ret['round_id']),("name",ret["name"]),("value",ret['valueString'])])
+                        returnvar = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']),("stage_number",stage_number),("round_id",ret['round_id']),("name",ret["name"]),("value",ret['valueString'])])
 			return gluon.contrib.simplejson.dumps(returnvar)
 
                 except Exception, e:

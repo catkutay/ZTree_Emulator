@@ -1,5 +1,21 @@
 {{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
 {{extend 'layout.html'}}
+<h2>Experiment Title: {{=exp.title}}</h2>
+Id: {{=exp.id}}   &#09; Rounds: {{=exp.rounds}} &#09; Type: {{=exp.typeExperiment}}
+<p></p>
+<h2>Experiment Setup Parameters</h2>
+{{for parameter in parameters:}}
+{{=parameter.name}}: {{=parameter.valueString}} &#09;
+{{pass}}
+<h3>Stages</h3>
+<table style="width: 600px; border: 1px solid black;">
+<tr style="background-color: #99CC33; color: black;">
+<td>Stage Number</td><td>Type</td><td>Message</td>
+{{for stage in stages:}}
+<tr><td>{{=stage.stage_number}}</td><td>{{=stage.type_stage}}</td><td>{{=stage.message}}</td>
+{{pass}}
+</table>
+</tr>
 <h2>Results Table</h2>
 <table style="width: 600px; border: 1px solid black;">
 <tr style="background-color: #99CC33; color: black;">
@@ -9,7 +25,7 @@
 <tr><td>{{=res.experiment_id}}</td><td>{{=res.stage_id}}</td><td>{{=res.round_id}}</td><td>{{=res.participant_id}}</td><td>{{=res.valueString}}</td></tr>
 {{pass}}
 </table>
-
+<a target="_blank" href="{{=URL(c="experiments",f="exportCSV",args="ExperimentResults."+str(exp.id)+".csv")}}">Export results as csv</a>
 
 <div id="rightContent">
 
