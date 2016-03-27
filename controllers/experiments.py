@@ -376,7 +376,6 @@ def results():
         value=request.vars
         variable=value.keys()
 	stage_id=0
-
 	try:
 		ret=db.stages((db.stages.experiment_id==value['experiment_id'])&(db.stages.stage_number==value["stage_number"]))
         	stage_number=value["stage_number"]
@@ -407,7 +406,7 @@ def results():
 		return dict(results=ret, exp=exp, parameters=parameters,stages=stages)
 
 	elif value['name']=="Result":
-
+		logging.warn(stage_id)
 		part_result=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))['valueString']
 		result=add_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 		exp_type=db.experiment(db.experiment.id==value['experiment_id'])
