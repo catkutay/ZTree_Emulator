@@ -25,7 +25,7 @@ Id: {{=exp.id}}   &#09; Rounds: {{=exp.rounds}} &#09; Type: {{=exp.typeExperimen
 <tr><td>{{=res.experiment_id}}</td><td>{{=res.stage_id}}</td><td>{{=res.round_id}}</td><td>{{=res.participant_id}}</td><td>{{=res.valueString}}</td></tr>
 {{pass}}
 </table>
-<a target="_blank" href="{{=URL(c="experiments",f="exportCSV",args="Experiment_Results_"+str(exp.id))}}">Export results as csv</a>
+<a target="_blank" href="{{=URL(c="experiments",f="exportCSV",args="ExperimentResults."+str(exp.id)+".csv")}}">Export results as csv</a>
 
 <div id="rightContent">
 

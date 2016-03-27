@@ -324,7 +324,7 @@ def get_round():
         ret=db.setupExperiment((db.setupExperiment.experiment_id==value['experiment_id'])&(db.setupExperiment.name=="rounds"))
     	if ret!=None:
 		
-		round_id= ret['valueString']
+		round_id=ret['valueString']
     	else:
 		round_id=1
 	returnvar=dict([("round_id",round_id)])
@@ -347,7 +347,7 @@ def next_round():
 	##add to setupExp
 	ret=db.setupExperiment((db.setupExperiment.name=="rounds") & (db.setupExperiment.experiment_id==exp_id))
 	if ret!=None:
-		ret.update(valueString=round_id)
+		ret.update_record(valueString=round_id)
 	else:
 	 	db.setupExperiment.insert(name="rounds", valueString=round_id, experiment_id=exp_id)
 	db.commit()		
@@ -366,9 +366,9 @@ def delete_results():
 
 def exportCSV():
      input=request.args[0]
-
-     experiment_id=int(input[19:])
-     results=db(db.experiment.id==experiment_id).select()
+     filename=input.split(".")
+     experiment_id=int(filename[1])
+     results=db(db.results.experiment_id==experiment_id).select()
      return dict(results=results)
 
 def results():
@@ -406,21 +406,24 @@ def results():
 		return dict(results=ret, exp=exp, parameters=parameters,stages=stages)
 
 	elif value['name']=="Result":
-		logging.warn(stage_id)
 		part_result=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))['valueString']
 		result=add_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 		exp_type=db.experiment(db.experiment.id==value['experiment_id'])
 		if exp_type.typeExperiment=="coin effort":
+		    try:
 			a=db.setupExperiment((db.setupExperiment.name=="a_parameter")&(db.setupExperiment.experiment_id==value['experiment_id']))['valueString']
 
 			b=db.setupExperiment((db.setupExperiment.name=="b_parameter")&(db.setupExperiment.experiment_id==value['experiment_id']))['valueString']
 
 			result=float(a)*float(result)-float(b)*float(part_result)
+		    except:
+			#no a or b parameter
+			result=float(part_result)
+
+			
 		else:
 			pass
 		returnvar=dict([("message","Your return is: "),("Results",result)])
-		logging.warn("Result")
-		logging.warn(results)
 		return gluon.contrib.simplejson.dumps(returnvar)
 	else:
         ##check if exists by exp and stage number and return id

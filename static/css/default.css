@@ -230,7 +230,7 @@ img.right {
 
 #content {
 	float: left;
-	background: url(images/img05.jpg) no-repeat;
+	background: url(images/img05.jpg) repeat-y;
 	margin-left:20px;
 margin-top:20px;
 	width: 660px;
