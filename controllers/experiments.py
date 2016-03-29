@@ -30,7 +30,7 @@ def display_results():
               TR("",INPUT(_type='submit'))))
     if form.process().accepted:
         session.flash = 'form accepted'
-        redirect(URL(f='results',vars=request.vars))
+        redirect (URL(f='results',vars=request.vars))
     elif form.errors:
         response.flash = 'form has errors'
     else:
@@ -149,6 +149,28 @@ def reset():
                                 return dict(start=False, delete=True)
                 return dict(form=form, start=True, delete=False)
 
+def setup_stage():
+    if (request.vars):
+        value=request.vars
+	exp_id=value['experiment_id']
+    else:
+	exp_id=None
+    form = FORM(TABLE(TR('Experiment ID:',
+              INPUT(_name='experiment_id', _value=exp_id,requires=IS_NOT_EMPTY())),
+             TR('Stage Number', INPUT(_name='stage_number' )),
+                TR('Stage Type',SELECT(_name='type_stage', *[OPTION(stage_type[i], _value=str(stage_type[i])) for i in range(len(stage_type))])),
+                TR('Message',INPUT(_name='message')),
+              TR("",INPUT(_type='submit'))))
+    if form.process().accepted:
+        session.flash = 'form accepted'
+        redirect (URL(f='enter_stage',vars=request.vars))
+    elif form.errors:
+        response.flash = 'form has errors'
+    else:
+        response.flash = 'please fill the form'
+    return dict(form=form)
+
+
 def setup_interface():
 
         #request for form from interface
@@ -255,17 +277,17 @@ def experiment():
     else:
         return "Error no parameter provided to read from data"
 
+stage_type=['Request', 'Receive', 'Wait','End']
+
 def check_part(value, stage_id):
-    type=['Request', 'Receive', 'Wait','End']
     # not return if not all participants ready
     participants=db((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.name=="response"))
     parts=db(db.experiment_participant.experiment_id==value['experiment_id'])
     if int(participants.count())<int(parts.count()):
-        returnvar = dict([("id",value["id"]),("experiment_id",value['experiment_id']), ("stage_number",value['stage_number']),("type_stage",type[2])])
+        returnvar = dict([("id",value["id"]),("experiment_id",value['experiment_id']), ("stage_number",value['stage_number']),("type_stage",stage_type[2])])
 	return gluon.contrib.simplejson.dumps(returnvar)
 
 def stages():
-    type=['Request', 'Response', 'Wait','End']
     # not return if not all participants
     if (request.vars):
         value=request.vars
@@ -278,10 +300,10 @@ def stages():
 
            except Exception, e:
                 return "Stage_number required "+str(e)
-	   if (ret==None): step=type[2]
+	   if (ret==None): step=stage_type[2]
 	   else: step=ret.type_stage
 ##check if participants full or results full as appropraite for that stage
-	   if step==type[1] or step==type[2]:
+	   if step==stage_type[1] or step==stage_type[2]:
 		typeS="participants"
 	   else:
 		typeS="results"	
@@ -300,22 +322,36 @@ def stages():
                 	returnvar = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']), ("stage_number",ret['stage_number']),("type_stage",ret['type_stage']),("message",ret['message'])])
                 	return gluon.contrib.simplejson.dumps(returnvar)
 
-        	elif value['stage_number']>0:  
-##skip error in entry
-                #create if can, if not send error
-                	try:
-                        	ret=db.stages.insert(experiment_id=value['experiment_id'], type_stage=type[int(value['type'])],stage_number=value['stage_number'] )
-                        	db.commit()
-                        	returnvar = dict([("id",ret['id']),("experiment_id",ret['experiment_id']),("stage_number",ret['stage_number']),("type_stage",ret['type_stage']),("message",ret['message'])])
-                        	return gluon.contrib.simplejson.dumps(returnvar)
-
-                	except Exception, e:
-
-                        	return "Error no parameter or incorrect parameter provided for data entry [experiment_id,stage_number, type]: %s" %e
 	else:
 		return "Stage not complete"
     else:
         return "Error no parameter provided to read from data eg check stage_number>0"
+
+
+def enter_stage():
+    # not return if not all participants
+    if (request.vars):
+        value=request.vars
+        variable=value.keys()
+        stage_number=int(value["stage_number"])
+	stage_types=value['type_stage']
+	exp_id=value['experiment_id']
+	for item in stage_type:
+		if stage_types==str(item):
+			types=item	
+	if value['stage_number']>0:
+##skip error in entry
+                #create if can, if not send error
+                try:
+                  ret=db.stages.insert(experiment_id=value['experiment_id'], type_stage=types,stage_number=value['stage_number'],message=value['message'] )
+                  db.commit()
+
+		  redirect (URL(f='results',vars={'experiment_id':exp_id,'name':'Results'}))
+
+                except Exception, e:
+
+                  return "Error : %s" %e
+	return None
 
 def get_round():
 

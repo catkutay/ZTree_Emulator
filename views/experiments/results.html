@@ -5,8 +5,10 @@ Id: {{=exp.id}}   &#09; Rounds: {{=exp.rounds}} &#09; Type: {{=exp.typeExperimen
 <p></p>
 <h2>Experiment Setup Parameters</h2>
 {{for parameter in parameters:}}
+<br>
 {{=parameter.name}}: {{=parameter.valueString}} &#09;
 {{pass}}
+<br>
 <h3>Stages</h3>
 <table style="width: 600px; border: 1px solid black;">
 <tr style="background-color: #99CC33; color: black;">
@@ -16,6 +18,7 @@ Id: {{=exp.id}}   &#09; Rounds: {{=exp.rounds}} &#09; Type: {{=exp.typeExperimen
 {{pass}}
 </table>
 </tr>
+<a href={{=URL(f="setup_stage",vars={'experiment_id':exp.id})}}>Add Stage</a>
 <h2>Results Table</h2>
 <table style="width: 600px; border: 1px solid black;">
 <tr style="background-color: #99CC33; color: black;">
