@@ -3,12 +3,13 @@
 <h2>Experiment Title: {{=exp.title}}</h2>
 Id: {{=exp.id}}   &#09; Rounds: {{=exp.rounds}} &#09; Type: {{=exp.typeExperiment}}
 <p></p>
-<h2>Experiment Setup Parameters</h2>
+<h3>Experiment Setup Parameters</h3>
+<table>
 {{for parameter in parameters:}}
-<br>
-{{=parameter.name}}: {{=parameter.valueString}} &#09;
+<tr><td>{{=parameter.name}}:</td><td> {{=parameter.valueString}} &#09;</td></tr>
+</tr>
 {{pass}}
-<br>
+</table><br>
 <h3>Stages</h3>
 <table style="width: 600px; border: 1px solid black;">
 <tr style="background-color: #99CC33; color: black;">
@@ -18,7 +19,7 @@ Id: {{=exp.id}}   &#09; Rounds: {{=exp.rounds}} &#09; Type: {{=exp.typeExperimen
 {{pass}}
 </table>
 </tr>
-<a href={{=URL(f="setup_stage",vars={'experiment_id':exp.id})}}>Add Stage</a>
+<a href={{=URL(f="setup_stage",args=exp.id)}}>Add Stage</a>
 <h2>Results Table</h2>
 <table style="width: 600px; border: 1px solid black;">
 <tr style="background-color: #99CC33; color: black;">

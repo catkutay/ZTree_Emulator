@@ -150,9 +150,9 @@ def reset():
                 return dict(form=form, start=True, delete=False)
 
 def setup_stage():
-    if (request.vars):
-        value=request.vars
-	exp_id=value['experiment_id']
+    if (request.args):
+        value=request.args
+	exp_id=value[0]
     else:
 	exp_id=None
     form = FORM(TABLE(TR('Experiment ID:',
@@ -163,7 +163,9 @@ def setup_stage():
               TR("",INPUT(_type='submit'))))
     if form.process().accepted:
         session.flash = 'form accepted'
-        redirect (URL(f='enter_stage',vars=request.vars))
+	enter_stage(request.vars)
+	redirect (URL(f='results',vars={'experiment_id':exp_id,'name':'Results'}))
+
     elif form.errors:
         response.flash = 'form has errors'
     else:
@@ -277,7 +279,7 @@ def experiment():
     else:
         return "Error no parameter provided to read from data"
 
-stage_type=['Request', 'Receive', 'Wait','End']
+stage_type=['Request', 'Response', 'Wait','End']
 
 def check_part(value, stage_id):
     # not return if not all participants ready
@@ -328,26 +330,27 @@ def stages():
         return "Error no parameter provided to read from data eg check stage_number>0"
 
 
-def enter_stage():
+def enter_stage(args):
     # not return if not all participants
-    if (request.vars):
-        value=request.vars
-        variable=value.keys()
-        stage_number=int(value["stage_number"])
-	stage_types=value['type_stage']
-	exp_id=value['experiment_id']
+   	logging.warn(args) 
+        stage_number=int(args["stage_number"])
+	logging.warn(stage_number)
+	stage_types=args['type_stage']
+	exp_id=args['experiment_id']
 	for item in stage_type:
 		if stage_types==str(item):
 			types=item	
-	if value['stage_number']>0:
+	if args['stage_number']>0:
 ##skip error in entry
                 #create if can, if not send error
                 try:
-                  ret=db.stages.insert(experiment_id=value['experiment_id'], type_stage=types,stage_number=value['stage_number'],message=value['message'] )
+		  ret=db.stages((db.stages.experiment_id==args['experiment_id'])&(db.stages.stage_number==args["stage_number"]))
+
+                  if ret==None: ret=db.stages.insert(experiment_id=args['experiment_id'], type_stage=types,stage_number=args['stage_number'],message=args['message'] )
+		  else: ret.update_record(type_stage=types, message=args['message'])
                   db.commit()
 
-		  redirect (URL(f='results',vars={'experiment_id':exp_id,'name':'Results'}))
-
+		  return
                 except Exception, e:
 
                   return "Error : %s" %e
@@ -436,7 +439,6 @@ def results():
                 elif (value['round_id']!="") & (value["round_id"]!=None): ret=db((db.results.experiment_id==exp_id)&(db.results.round_id==value['round_id'])).select()
                 else:  ret=db((db.results.experiment_id==exp_id)).select()
 		exp=db.experiment(db.experiment.id==exp_id)
-		logging.warn(experiment)
 		stages=db(db.stages.experiment_id==exp_id).select()
                 parameters=db(db.setupExperiment.experiment_id==exp_id).select()
 		return dict(results=ret, exp=exp, parameters=parameters,stages=stages)
