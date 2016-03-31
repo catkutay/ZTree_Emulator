@@ -92,7 +92,7 @@ db.define_table('experiment',Field('title','string',unique=True),Field('typeExpe
 
 db.define_table('participant',Field('IP','string'),Field('model_name','string'))
 
-db.define_table('results',Field('experiment_id','integer'),Field('participant_id','integer'),Field('stage_id','integer'),Field('round_id','integer'),Field('name','string'),Field('valueString','string'))
+db.define_table('results',Field('experiment_id','integer'),Field('participant_id','integer'),Field('stage_id','integer'),Field('round_id','integer'),Field('name','string'),Field('valueInt','double'),Field('returnvar','double'),Field('total','double'))
 
 db.define_table('setupExperiment',Field ('experiment_id','integer'),Field('name','string'),Field('valueString','string'))
 ## after defining tables, uncomment below to enable auditing

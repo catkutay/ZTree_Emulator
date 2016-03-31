@@ -381,3 +381,16 @@ timestamp: 2016-02-10T21:24:32.449546
 ALTER TABLE stages ADD message VARCHAR(512);
 faked!
 success!
+timestamp: 2016-03-31T18:46:31.851684
+ALTER TABLE results ADD returnvar INT;
+faked!
+timestamp: 2016-03-31T18:46:31.852479
+ALTER TABLE results ADD total INT;
+faked!
+timestamp: 2016-03-31T18:46:31.852968
+ALTER TABLE results ADD valueint INT;
+faked!
+timestamp: 2016-03-31T18:46:31.853304
+ALTER TABLE results DROP COLUMN valuestring;
+faked!
+success!
