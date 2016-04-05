@@ -450,7 +450,7 @@ def results():
 		if part_resultdb!=None: 
 			logging.warn(part_resultdb)
 			part_result=part_resultdb['valueInt']
-			result=add_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
+			result=min_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 			exp_type=db.experiment(db.experiment.id==value['experiment_id'])
 			if exp_type.typeExperiment=="coin effort":
 		    		try:
@@ -502,10 +502,11 @@ def results():
     else:
         return "Error no parameter provided to read from data"
 
-def add_results(variable):
+def min_results(variable):
 	results=db((db.results.experiment_id==variable['experiment_id'])&(db.results.stage_id==variable['stage_id'])& (db.results.round_id==variable['round_id'])).select()
 	returnResult=[]
-	for res in results:	
+	ret=0
+ 	for res in results:	
 		returnResult.append(res.valueInt)
 	if (returnResult!=[]):ret=min(returnResult)
 	return ret
