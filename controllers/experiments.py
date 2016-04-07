@@ -10,6 +10,7 @@
 #########################################################################
 import gluon.contrib.simplejson
 
+max_coins = 20
 
 def index():
     """
@@ -448,8 +449,9 @@ def results():
 
 		part_resultdb=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))
 		if part_resultdb!=None: 
-			logging.warn(part_resultdb)
 			part_result=part_resultdb['valueInt']
+			part_total=max_coins-int(part_resultdb['valueInt'])
+			logging.warn(part_result)
 			result=min_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 			exp_type=db.experiment(db.experiment.id==value['experiment_id'])
 			if exp_type.typeExperiment=="coin effort":
@@ -469,10 +471,10 @@ def results():
 		#find result for the participant and add return and total
 			ret=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.participant_id==value['participant_id'])&(db.results.round_id==value['round_id']))
 			ret.update_record(returnvar=float(result))
-			ret.update_record(  total=float(result)+ret['valueInt'])
+			ret.update_record(  total=float(part_total+result))
 		
 			db.commit()
-                	returnvar=dict([("name","Results"),("message","Your return is: "),("Results",result),("Total",float(result)+ret['valueInt'])])
+                	returnvar=dict([("name","Results"),("message","Your return is: "),("Results",result),("Total",float(part_total+result)+ret['valueInt'])])
 
 
 			return gluon.contrib.simplejson.dumps(returnvar)
