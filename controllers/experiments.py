@@ -177,29 +177,43 @@ def setup_stage():
 def setup_interface():
 
         #request for form from interface
-        form=FORM("Experiment Title",INPUT(_name="Title"),
+        form=FORM(INPUT(_value="id",_type="hidden"),"id", INPUT(_name="valueString"),"Experiment Title",INPUT(_name="Title"),
                 INPUT(_value="max_participants",_type="hidden"),"Maximum Participants: ",INPUT(_name="valueString"),
                 INPUT(_value="Host_IP",_type="hidden"),"Host: ",INPUT(_value="127.0.0.1",_name="valueString"),
                 INPUT(_value="Port",_type="hidden"),"Port: ",INPUT(_value="1100",_name="valueString"),
                 "Type of Experiment",SELECT('coin effort', 'stag and hare' ,_name="typeExperiment"),
                 "A Parameter: ", INPUT(_name='valueString'),
                 "B Parameter: ", INPUT(_name='valueString'),
-                "Rounds : ", INPUT(_name="rounds"),
+                "Rounds : ", INPUT(_name="valueString", _value=1),
                 INPUT(_type="submit"))
         if form.accepts(request.vars):
-                name=['max_participants','Host_IP','Port','a_parameter','b_parameter']
+                name=["id",'max_participants','Host_IP','Port','a_parameter','b_parameter',"rounds"]
                 values=request.vars['valueString']
+		if (values[0]!='') & (values[0]>0):
+			exp_id=values[0]
+			i=1
+                        while i<len(values):
+				logging.warn(name[i])
+				logging.warn(values[i])
+				ret=db.setupExperiment(experiment_id=exp_id, name=name[i])
+                                ret.update_record(name=name[i], valueString=values[i], experiment_id=exp_id)
+                                i+=1
+				
+                #default
+			ret=db.setupExperiment(experiment_id=exp_id,name="participant")
+                        ret.update_record(name="participant", valueString=0, experiment_id=exp_id)
 
                 #insert experiment name etc
-                exp_id=db.experiment.insert( title=request.vars['Title'],typeExperiment=request.vars['typeExperiment'],rounds=request.vars['rounds']).id
+                else:
+			exp_id=db.experiment.insert( title=request.vars['Title'],typeExperiment=request.vars['typeExperiment'],rounds=request.vars['rounds']).id
                 
                 #now insert the array of named vars
-                i=0
-                while i<len(values):
-                        db.setupExperiment.insert(name=name[i], valueString=values[i], experiment_id=exp_id)
-                        i+=1
+                	i=1
+                	while i<len(values):
+                        	db.setupExperiment.insert(name=name[i], valueString=values[i], experiment_id=exp_id)
+                        	i+=1
                 #default
-                db.setupExperiment.insert(name="participant", valueString=0, experiment_id=exp_id)
+                	db.setupExperiment.insert(name="participant", valueString=0, experiment_id=exp_id)
                 response.flash = 'form accepted'
                 #cheating a bit
                 return dict(form="Experiment entered, id ="+str(exp_id))
@@ -256,6 +270,7 @@ def experiment():
 	## if id given
         if (value['id']>0):
 		ret=db.experiment(db.experiment.id==value['id'])
+		ret.update_record(title=value['title'], typeExperiment=type[int(value['type'])], rounds=value['rounds'])
 	else:
 		
 	##check if exists by title and return id
@@ -451,7 +466,6 @@ def results():
 		if part_resultdb!=None: 
 			part_result=part_resultdb['valueInt']
 			part_total=max_coins-int(part_resultdb['valueInt'])
-			logging.warn(part_result)
 			result=min_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 			exp_type=db.experiment(db.experiment.id==value['experiment_id'])
 			if exp_type.typeExperiment=="coin effort":
@@ -474,7 +488,7 @@ def results():
 			ret.update_record(  total=float(part_total+result))
 		
 			db.commit()
-                	returnvar=dict([("name","Results"),("message","Your return is: "),("Results",result),("Total",float(part_total+result)+ret['valueInt'])])
+                	returnvar=dict([("name","Results"),("message","Your return is: "),("Results",result),("Total",float(part_total+result))])
 
 
 			return gluon.contrib.simplejson.dumps(returnvar)
