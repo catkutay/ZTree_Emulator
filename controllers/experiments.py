@@ -495,7 +495,6 @@ def results():
 			ret.update_record(  total=float(part_total+result))
 		
 			db.commit()
-			logging.warn(ret)
                 	returnvar=dict([("name","Results"),("Contribution",ret["valueInt"]),("Payoff",result),("Return",float(part_total+result))])
 
 
