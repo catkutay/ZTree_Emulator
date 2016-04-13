@@ -43,6 +43,18 @@ def help():
 
     return auth.wiki('help')
 
+def add_participant():
+
+    if(request.vars):
+        value=request.vars
+        variable=value.keys()
+        participant=None
+	  #setup participatn in experiment as there is room
+        db.experiment_participant.insert(experiment_id=value["experiment_id"],participant_id=value["participant_id"])
+        db.commit()
+
+    return None;
+
 def participant():
     if (request.vars):
         value=request.vars
@@ -89,9 +101,6 @@ def participant():
 		return gluon.contrib.simplejson.dumps(returnvar)
 
 
-	#setup participatn in experiment as there is room
-	db.experiment_participant.insert(experiment_id=exp_id,participant_id=part_id)
-        db.commit()
 	#get exisitng setup data
         ret=db.setupExperiment((db.setupExperiment.name=="participant") & (db.setupExperiment.experiment_id==exp_id))
         if (ret==None):
@@ -460,8 +469,6 @@ def results():
 		return dict(results=ret, exp=exp, parameters=parameters,stages=stages)
 
 	elif value['name']=="Result":
- 		logging.warn(value['name'])
-
 		part_resultdb=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))
 		if part_resultdb!=None: 
 			part_result=part_resultdb['valueInt']
@@ -488,7 +495,8 @@ def results():
 			ret.update_record(  total=float(part_total+result))
 		
 			db.commit()
-                	returnvar=dict([("name","Results"),("message","Your return is: "),("Results",result),("Total",float(part_total+result))])
+			logging.warn(ret)
+                	returnvar=dict([("name","Results"),("Contribution",ret["valueInt"]),("Payoff",result),("Return",float(part_total+result))])
 
 
 			return gluon.contrib.simplejson.dumps(returnvar)
