@@ -1,4 +1,4 @@
-timestamp: 2016-01-22T12:13:19.585351
+timestamp: 2016-04-15T19:36:21.213393
 CREATE TABLE auth_user(
     id INT AUTO_INCREMENT NOT NULL,
     first_name VARCHAR(128),
@@ -11,7 +11,7 @@ CREATE TABLE auth_user(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.588342
+timestamp: 2016-04-15T19:36:21.214502
 CREATE TABLE auth_group(
     id INT AUTO_INCREMENT NOT NULL,
     role VARCHAR(512),
@@ -19,7 +19,7 @@ CREATE TABLE auth_group(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.591779
+timestamp: 2016-04-15T19:36:21.215678
 CREATE TABLE auth_membership(
     id INT AUTO_INCREMENT NOT NULL,
     user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
@@ -27,7 +27,7 @@ CREATE TABLE auth_membership(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.595864
+timestamp: 2016-04-15T19:36:21.216945
 CREATE TABLE auth_permission(
     id INT AUTO_INCREMENT NOT NULL,
     group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
@@ -37,7 +37,7 @@ CREATE TABLE auth_permission(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.602761
+timestamp: 2016-04-15T19:36:21.218319
 CREATE TABLE auth_event(
     id INT AUTO_INCREMENT NOT NULL,
     time_stamp DATETIME,
@@ -48,7 +48,7 @@ CREATE TABLE auth_event(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.606816
+timestamp: 2016-04-15T19:36:21.219740
 CREATE TABLE auth_cas(
     id INT AUTO_INCREMENT NOT NULL,
     user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
@@ -59,7 +59,7 @@ CREATE TABLE auth_cas(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.614219
+timestamp: 2016-04-15T19:36:21.222428
 CREATE TABLE wiki_page(
     id INT AUTO_INCREMENT NOT NULL,
     slug VARCHAR(512),
@@ -79,7 +79,7 @@ CREATE TABLE wiki_page(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.622484
+timestamp: 2016-04-15T19:36:21.224439
 CREATE TABLE wiki_tag(
     id INT AUTO_INCREMENT NOT NULL,
     name VARCHAR(512),
@@ -92,7 +92,7 @@ CREATE TABLE wiki_tag(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.631390
+timestamp: 2016-04-15T19:36:21.226371
 CREATE TABLE wiki_media(
     id INT AUTO_INCREMENT NOT NULL,
     wiki_page INT, INDEX wiki_page__idx (wiki_page), FOREIGN KEY (wiki_page) REFERENCES wiki_page (id) ON DELETE CASCADE,
@@ -106,291 +106,61 @@ CREATE TABLE wiki_media(
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.752878
-CREATE TABLE Events(
+timestamp: 2016-04-15T19:36:21.227759
+CREATE TABLE stages(
     id INT AUTO_INCREMENT NOT NULL,
     experiment_id INT,
-    event_number INT,
-    typeEvent VARCHAR(512),
+    stage_number INT,
+    type_stage VARCHAR(512),
+    message VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-22T12:13:19.755171
-CREATE TABLE Experiment(
-    id INT AUTO_INCREMENT NOT NULL,
-    title VARCHAR(512),
-    typeExperiment VARCHAR(512),
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-timestamp: 2016-01-22T12:13:19.757861
-CREATE TABLE Participant(
-    id INT AUTO_INCREMENT NOT NULL,
-    IP VARCHAR(512),
-    Model_name VARCHAR(512),
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-timestamp: 2016-01-22T12:13:19.762370
-CREATE TABLE Results(
-    id INT AUTO_INCREMENT NOT NULL,
-    Experiment_id INT,
-    Participant_id INT,
-    Round_id INT,
-    name VARCHAR(512),
-    valueString VARCHAR(512),
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-timestamp: 2016-01-22T12:13:19.766391
-CREATE TABLE Setup(
-    id INT AUTO_INCREMENT NOT NULL,
-    name VARCHAR(512),
-    valueString VARCHAR(512),
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-timestamp: 2016-01-22T12:39:47.458824
-CREATE TABLE auth_user(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    first_name CHAR(128),
-    last_name CHAR(128),
-    email CHAR(512),
-    password CHAR(512),
-    registration_key CHAR(512),
-    reset_password_key CHAR(512),
-    registration_id CHAR(512)
-);
-success!
-timestamp: 2016-01-22T12:39:47.463397
-CREATE TABLE auth_group(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    role CHAR(512),
-    description TEXT
-);
-success!
-timestamp: 2016-01-22T12:39:47.467583
-CREATE TABLE auth_membership(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
-    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE
-);
-success!
-timestamp: 2016-01-22T12:39:47.475279
-CREATE TABLE auth_permission(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE,
-    name CHAR(512),
-    table_name CHAR(512),
-    record_id INTEGER
-);
-success!
-timestamp: 2016-01-22T12:39:47.480011
-CREATE TABLE auth_event(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    time_stamp TIMESTAMP,
-    client_ip CHAR(512),
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
-    origin CHAR(512),
-    description TEXT
-);
-success!
-timestamp: 2016-01-22T12:39:47.485214
-CREATE TABLE auth_cas(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
-    created_on TIMESTAMP,
-    service CHAR(512),
-    ticket CHAR(512),
-    renew CHAR(1)
-);
-success!
-timestamp: 2016-01-22T12:39:47.501955
-CREATE TABLE wiki_page(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    slug CHAR(512),
-    title CHAR(255) UNIQUE,
-    body TEXT NOT NULL,
-    tags TEXT,
-    can_read TEXT,
-    can_edit TEXT,
-    changelog CHAR(512),
-    html TEXT,
-    render CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
-);
-success!
-timestamp: 2016-01-22T12:39:47.517686
-CREATE TABLE wiki_tag(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name CHAR(512),
-    wiki_page INTEGER REFERENCES wiki_page (id) ON DELETE CASCADE,
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
-);
-success!
-timestamp: 2016-01-22T12:39:47.528231
-CREATE TABLE wiki_media(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    wiki_page INTEGER REFERENCES wiki_page (id) ON DELETE CASCADE,
-    title CHAR(512),
-    filename CHAR(512),
-    is_active CHAR(1),
-    created_on TIMESTAMP,
-    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
-    modified_on TIMESTAMP,
-    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
-);
-success!
-timestamp: 2016-01-22T12:39:47.723411
-CREATE TABLE Events(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    experiment_id INTEGER,
-    event_number INTEGER,
-    typeEvent CHAR(512)
-);
-success!
-timestamp: 2016-01-22T12:39:47.728695
-CREATE TABLE Experiment(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title CHAR(512),
-    typeExperiment CHAR(512)
-);
-success!
-timestamp: 2016-01-22T12:39:47.739330
-CREATE TABLE Participant(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    IP CHAR(512),
-    Model_name CHAR(512)
-);
-success!
-timestamp: 2016-01-22T12:39:47.749700
-CREATE TABLE Results(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Experiment_id INTEGER,
-    Participant_id INTEGER,
-    Round_id INTEGER,
-    name CHAR(512),
-    valueString CHAR(512)
-);
-success!
-timestamp: 2016-01-22T12:39:47.757817
-CREATE TABLE Setup(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name CHAR(512),
-    valueString CHAR(512)
-);
-success!
-timestamp: 2016-01-25T14:47:11.686378
-CREATE TABLE setupExperiment(
-    id INT AUTO_INCREMENT NOT NULL,
-    name VARCHAR(512),
-    valueString VARCHAR(512),
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-timestamp: 2016-01-27T09:06:12.037214
-CREATE TABLE events(
+timestamp: 2016-04-15T19:36:21.229299
+CREATE TABLE experiment_participant(
     id INT AUTO_INCREMENT NOT NULL,
     experiment_id INT,
-    event_number INT,
-    typeEvent VARCHAR(512),
+    participant_id INT,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-27T09:06:12.038472
+timestamp: 2016-04-15T19:36:21.230356
 CREATE TABLE experiment(
     id INT AUTO_INCREMENT NOT NULL,
     title VARCHAR(512) UNIQUE,
     typeExperiment VARCHAR(512),
+    rounds INT,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-27T09:06:12.039307
+timestamp: 2016-04-15T19:36:21.231234
 CREATE TABLE participant(
     id INT AUTO_INCREMENT NOT NULL,
     IP VARCHAR(512),
-    Model_name VARCHAR(512),
+    model_name VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-27T09:06:12.040510
+timestamp: 2016-04-15T19:36:21.232998
 CREATE TABLE results(
     id INT AUTO_INCREMENT NOT NULL,
-    Experiment_id INT,
-    Participant_id INT,
-    Round_id INT,
+    experiment_id INT,
+    participant_id INT,
+    stage_id INT,
+    round_id INT,
+    name VARCHAR(512),
+    contribution DOUBLE,
+    payoff DOUBLE,
+    total DOUBLE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2016-04-15T19:36:21.234113
+CREATE TABLE setupExperiment(
+    id INT AUTO_INCREMENT NOT NULL,
+    experiment_id INT,
     name VARCHAR(512),
     valueString VARCHAR(512),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8;
 faked!
-timestamp: 2016-01-27T17:10:27.000690
-ALTER TABLE setupExperiment ADD experiment_id INT;
-faked!
-success!
-timestamp: 2016-01-28T15:19:38.593009
-CREATE TABLE stages(
-    id INT AUTO_INCREMENT NOT NULL,
-    experiment_id INT,
-    event_number INT,
-    type_stage VARCHAR(512),
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-timestamp: 2016-01-28T17:00:23.201712
-ALTER TABLE stages ADD stage_number INT;
-faked!
-timestamp: 2016-01-28T17:00:23.203542
-ALTER TABLE stages DROP COLUMN event_number;
-faked!
-timestamp: 2016-01-29T10:31:15.866572
-ALTER TABLE experiment ADD rounds INT;
-timestamp: 2016-01-29T10:32:22.187528
-ALTER TABLE experiment ADD rounds INT;
-faked!
-success!
-timestamp: 2016-01-29T10:32:22.190673
-ALTER TABLE results ADD stage_id INT;
-faked!
-success!
-timestamp: 2016-02-02T10:22:45.945122
-CREATE TABLE experiment_participant(
-    id INT AUTO_INCREMENT NOT NULL,
-    experiment_id INT,
-    participant_id INT,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-timestamp: 2016-02-02T10:22:45.966261
-CREATE TABLE experiment_participant(
-    id INT AUTO_INCREMENT NOT NULL,
-    experiment_id INT,
-    participant_id INT,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB CHARACTER SET utf8;
-faked!
-faked!
-timestamp: 2016-02-10T21:24:32.449546
-ALTER TABLE stages ADD message VARCHAR(512);
-faked!
-success!
-timestamp: 2016-03-31T18:46:31.851684
-ALTER TABLE results ADD returnvar INT;
-faked!
-timestamp: 2016-03-31T18:46:31.852479
-ALTER TABLE results ADD total INT;
-faked!
-timestamp: 2016-03-31T18:46:31.852968
-ALTER TABLE results ADD valueint INT;
-faked!
-timestamp: 2016-03-31T18:46:31.853304
-ALTER TABLE results DROP COLUMN valuestring;
-faked!
-success!

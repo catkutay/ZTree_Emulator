@@ -87,8 +87,8 @@ def participant():
 		return "Start New Group as Host Server"
 	#expereiment not fulli add expereimenter
 	elif value["participant"]=="0":
-		returnvar= dict([("message","experimenter"),("participant","0"),("experimental_id",exp_id),("participant_id","0")])
-		return gluon.contrib.simplejson.dumps(returnvar)
+		payoff= dict([("message","experimenter"),("participant","0"),("experimental_id",exp_id),("participant_id","0")])
+		return gluon.contrib.simplejson.dumps(payoff)
 
 	elif ((parts.count())<max_participants):
                 if (part==None):
@@ -97,8 +97,8 @@ def participant():
                 else:
                         part_id=part['id']
 	else:
-		returnvar= dict([("message","full"),("participant","-1"),("experimental_id",exp_id),("participant_id","-1")])
-		return gluon.contrib.simplejson.dumps(returnvar)
+		payoff= dict([("message","full"),("participant","-1"),("experimental_id",exp_id),("participant_id","-1")])
+		return gluon.contrib.simplejson.dumps(payoff)
 
 
 	#get exisitng setup data
@@ -108,8 +108,8 @@ def participant():
                 if value["participant"]!="":
                         db.setupExperiment.insert(name="participant", valueString=value["participant"], experiment_id=exp_id)
                         db.commit()
-			returnvar= dict([("participant",str(value["participant"])),("experimental_id",exp_id), ("participant_id",part_id)])
-                        return gluon.contrib.simplejson.dumps(returnvar)
+			payoff= dict([("participant",str(value["participant"])),("experimental_id",exp_id), ("participant_id",part_id)])
+                        return gluon.contrib.simplejson.dumps(payoff)
                 else:
                         return "Please enter value for participant"
 	#if paricipant number set and already exists
@@ -120,8 +120,8 @@ def participant():
 
 	#return all values
 
-        returnvar= dict([("participant",str(ret.valueString)),("experimental_id",exp_id),("participant_id",part_id)])
-        return gluon.contrib.simplejson.dumps(returnvar)
+        payoff= dict([("participant",str(ret.valueString)),("experimental_id",exp_id),("participant_id",part_id)])
+        return gluon.contrib.simplejson.dumps(payoff)
     else:
         return "Error no parameter provided to read for participant"
 
@@ -134,9 +134,9 @@ def reset():
                 ret=db.experiment((db.experiment.title==request.vars['title']))
                 if (ret!=None):
                         form=FORM(INPUT(_name="experiment_id",_value=ret.id,_type="hidden"),"Delete ?:",INPUT(_type="Checkbox",_name="delete"),INPUT(_type='submit'))
-                        returnvar=dict([("Title",ret.title),("ExperimentType",ret.typeExperiment), ("start", False), ("delete",False),("form", form)])
+                        payoff=dict([("Title",ret.title),("ExperimentType",ret.typeExperiment), ("start", False), ("delete",False),("form", form)])
 
-                        return returnvar
+                        return payoff
                 else:
                         return "No such experiment"
         else:
@@ -255,8 +255,8 @@ def setup():
 		if value[variableData]!="":
 			db.setupExperiment.insert(name=variableData, valueString=value[variableData], experiment_id=exp_id)
                 	db.commit()
-			returnvar= dict([(variableData,str(value[variableData])),("experimental_id",exp_id)])
-			return gluon.contrib.simplejson.dumps(returnvar)
+			payoff= dict([(variableData,str(value[variableData])),("experimental_id",exp_id)])
+			return gluon.contrib.simplejson.dumps(payoff)
 		else:
 			return "Please enter value for "+variableData
     	if (value[variableData]!=""):
@@ -265,8 +265,8 @@ def setup():
         	else:
 			ret.update_record(valueString=value[variableData])
 
-	returnvar= dict([(variableData,str(ret.valueString)),("experimental_id",exp_id)])
-    	return gluon.contrib.simplejson.dumps(returnvar)
+	payoff= dict([(variableData,str(ret.valueString)),("experimental_id",exp_id)])
+    	return gluon.contrib.simplejson.dumps(payoff)
     else:
 	form
         return "Error no parameter provided to read from data"
@@ -286,16 +286,16 @@ def experiment():
 		ret=db.experiment(db.experiment.title==value['title'])
         if (ret!=None):
 		##return if already found
-		returnvar = dict([("id",ret["id"])])
-		return gluon.contrib.simplejson.dumps(returnvar)
+		payoff = dict([("id",ret["id"])])
+		return gluon.contrib.simplejson.dumps(payoff)
 
 	else:
 		#create if can, if not send error
 		try:
 			ret=db.experiment.insert(title=value['title'], typeExperiment=type[int(value['type'])], rounds=value['rounds'])
                 	db.commit()
-			returnvar = dict([("id",ret['id']), ("title",ret['title']),("typeExperiment",ret['typeExperiment']),("rounds",ret['rounds'])])
-			return gluon.contrib.simplejson.dumps(returnvar)
+			payoff = dict([("id",ret['id']), ("title",ret['title']),("typeExperiment",ret['typeExperiment']),("rounds",ret['rounds'])])
+			return gluon.contrib.simplejson.dumps(payoff)
 
 		except Exception, e:
 			
@@ -311,8 +311,8 @@ def check_part(value, stage_id):
     participants=db((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.name=="response"))
     parts=db(db.experiment_participant.experiment_id==value['experiment_id'])
     if int(participants.count())<int(parts.count()):
-        returnvar = dict([("id",value["id"]),("experiment_id",value['experiment_id']), ("stage_number",value['stage_number']),("type_stage",stage_type[2])])
-	return gluon.contrib.simplejson.dumps(returnvar)
+        payoff = dict([("id",value["id"]),("experiment_id",value['experiment_id']), ("stage_number",value['stage_number']),("type_stage",stage_type[2])])
+	return gluon.contrib.simplejson.dumps(payoff)
 
 def stages():
     # not return if not all participants
@@ -346,8 +346,8 @@ def stages():
         	ret=db.stages((db.stages.experiment_id==value['experiment_id'])&(db.stages.stage_number==stage_number))
         	if (ret!=None):
                 ##return if already found
-                	returnvar = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']), ("stage_number",ret['stage_number']),("type_stage",ret['type_stage']),("message",ret['message'])])
-                	return gluon.contrib.simplejson.dumps(returnvar)
+                	payoff = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']), ("stage_number",ret['stage_number']),("type_stage",ret['type_stage']),("message",ret['message'])])
+                	return gluon.contrib.simplejson.dumps(payoff)
 
 	else:
 		return "Stage not complete"
@@ -391,8 +391,8 @@ def get_round():
 		round_id=ret['valueString']
     	else:
 		round_id=1
-	returnvar=dict([("round_id",round_id)])
-        return gluon.contrib.simplejson.dumps(returnvar)
+	payoff=dict([("round_id",round_id)])
+        return gluon.contrib.simplejson.dumps(payoff)
     else: 
 	return "Unknown experiment"
 
@@ -415,8 +415,8 @@ def next_round():
 	else:
 	 	db.setupExperiment.insert(name="rounds", valueString=round_id, experiment_id=exp_id)
 	db.commit()		
-	returnvar=dict([("round_id",round_id)])
-        return gluon.contrib.simplejson.dumps(returnvar)
+	payoff=dict([("round_id",round_id)])
+        return gluon.contrib.simplejson.dumps(payoff)
 	
 ##resets experimetn
 def delete_results():
@@ -471,8 +471,8 @@ def results():
 	elif value['name']=="Result":
 		part_resultdb=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.stage_id==stage_id)&(db.results.round_id==value['round_id'])&(db.results.participant_id==value['participant_id']))
 		if part_resultdb!=None: 
-			part_result=part_resultdb['valueInt']
-			part_total=max_coins-int(part_resultdb['valueInt'])
+			part_result=part_resultdb['contribution']
+			part_total=max_coins-int(part_resultdb['contribution'])
 			result=min_results(dict([("experiment_id",value['experiment_id']),("stage_id",stage_id),("round_id",value['round_id'])]))
 			exp_type=db.experiment(db.experiment.id==value['experiment_id'])
 			if exp_type.typeExperiment=="coin effort":
@@ -491,32 +491,32 @@ def results():
 				pass
 		#find result for the participant and add return and total
 			ret=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.participant_id==value['participant_id'])&(db.results.round_id==value['round_id']))
-			ret.update_record(returnvar=float(result))
+			ret.update_record(payoff=float(result))
 			ret.update_record(  total=float(part_total+result))
 		
 			db.commit()
-                	returnvar=dict([("name","Results"),("Contribution",ret["valueInt"]),("Payoff",result),("Return",float(part_total+result))])
+                	payoff=dict([("name","Results"),("Contribution",ret["contribution"]),("Payoff",result),("Return",float(part_total+result))])
 
 
-			return gluon.contrib.simplejson.dumps(returnvar)
+			return gluon.contrib.simplejson.dumps(payoff)
 	else:
 		resultEnter=None
         ##check if exists by exp and stage number and return id
                 try:
-			resultEnter=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.participant_id==value['participant_id'])&(db.results.round_id==value['round_id'])&(db.results.stage_id==stage_id)&(db.results.name==value['name'])&(db.results.valueInt==float(value['value'])))
+			resultEnter=db.results((db.results.experiment_id==value['experiment_id'])&(db.results.participant_id==value['participant_id'])&(db.results.round_id==value['round_id'])&(db.results.stage_id==stage_id)&(db.results.name==value['name'])&(db.results.contribution==float(value['value'])))
 		except Exception , e:
 			return "Incorrect call to api: "+str(e)
 		if (resultEnter!=None):
                 ##return if already found
-                	returnvar = dict([("id",resultEnter["id"]),("experiment_id",resultEnter['experiment_id']),("stage_id",stage_number),("round_id",resultEnter['round_id']),("name",resultEnter["name"]),("value",resultEnter['valueInt'])])
-                	return gluon.contrib.simplejson.dumps(returnvar)
+                	payoff = dict([("id",resultEnter["id"]),("experiment_id",resultEnter['experiment_id']),("stage_id",stage_number),("round_id",resultEnter['round_id']),("name",resultEnter["name"]),("value",resultEnter['contribution'])])
+                	return gluon.contrib.simplejson.dumps(payoff)
 
         	else:
                 	try:
-                        	ret=db.results.insert(experiment_id=value['experiment_id'], participant_id=value['participant_id'],stage_id=stage_id,round_id=value['round_id'],name=value['name'],valueInt=float(value['value']))
+                        	ret=db.results.insert(experiment_id=value['experiment_id'], participant_id=value['participant_id'],stage_id=stage_id,round_id=value['round_id'],name=value['name'],contribution=float(value['value']))
                         	db.commit()
-                        	returnvar = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']),("stage_number",stage_number),("round_id",ret['round_id']),("name",ret["name"]),("value",ret['valueInt'])])
-				return gluon.contrib.simplejson.dumps(returnvar)
+                        	payoff = dict([("id",ret["id"]),("experiment_id",ret['experiment_id']),("stage_number",stage_number),("round_id",ret['round_id']),("name",ret["name"]),("value",ret['contribution'])])
+				return gluon.contrib.simplejson.dumps(payoff)
 
                 	except Exception, e:
 
@@ -530,7 +530,7 @@ def min_results(variable):
 	returnResult=[]
 	ret=0
  	for res in results:	
-		returnResult.append(res.valueInt)
+		returnResult.append(res.contribution)
 	if (returnResult!=[]):ret=min(returnResult)
 	return ret
 		
